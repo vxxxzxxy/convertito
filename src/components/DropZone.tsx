@@ -47,8 +47,8 @@ export function DropZone() {
         className={[
           'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-14 text-center transition',
           dragOver
-            ? 'border-emerald-400 bg-emerald-400/10'
-            : 'border-zinc-700 bg-zinc-900/40 hover:border-zinc-500 hover:bg-zinc-900/60',
+            ? 'border-primary bg-primary/10'
+            : 'border-border bg-muted/40 hover:border-foreground/30 hover:bg-muted/60',
         ].join(' ')}
       >
         <svg
@@ -57,14 +57,14 @@ export function DropZone() {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
-          className="mb-4 h-10 w-10 text-zinc-400"
+          className="mb-4 h-10 w-10 text-muted-foreground"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
-        <p className="text-base font-medium text-zinc-100">
+        <p className="text-base font-medium text-foreground">
           Arrastra imágenes aquí o haz click
         </p>
-        <p className="mt-1 text-sm text-zinc-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           JPEG · PNG · WebP · AVIF · JPEG&nbsp;XL
         </p>
         <input
@@ -81,7 +81,7 @@ export function DropZone() {
           className="sr-only"
         />
       </label>
-      <p aria-live="polite" className="mt-2 min-h-[1.25rem] text-xs text-zinc-500">
+      <p aria-live="polite" className="mt-2 min-h-[1.25rem] text-xs text-muted-foreground">
         {status}
       </p>
     </div>

@@ -28,8 +28,8 @@ export function ResultActions() {
   }
 
   return (
-    <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-zinc-900/40 px-4 py-3 text-sm">
-      <span className="text-zinc-400">
+    <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-card px-4 py-3 text-sm">
+      <span className="text-muted-foreground">
         {doneJobs.length} {doneJobs.length === 1 ? 'archivo listo' : 'archivos listos'}
       </span>
       <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ export function ResultActions() {
           type="button"
           onClick={downloadZip}
           disabled={zipping || doneJobs.length === 0}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
         >
           {zipping ? 'Empaquetando…' : 'Descargar todo (ZIP)'}
         </button>
@@ -45,7 +45,7 @@ export function ResultActions() {
           type="button"
           onClick={clearDone}
           disabled={zipping}
-          className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-50"
+          className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground/80 transition hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
         >
           Limpiar listos
         </button>

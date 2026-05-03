@@ -4,7 +4,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:unpkg.com)",
-      "WebFetch(domain:app.unpkg.com)"
+      "WebFetch(domain:app.unpkg.com)",
+      "WebFetch(domain:ui.shadcn.com)"
     ]
   }
 }

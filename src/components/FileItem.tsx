@@ -25,8 +25,8 @@ export function FileItem({ job }: FileItemProps) {
   const isFinal = job.status === 'done' || job.status === 'error' || job.status === 'cancelled';
 
   return (
-    <li className="flex flex-col gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 sm:flex-row sm:items-start">
-      <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-md bg-zinc-800">
+    <li className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-start">
+      <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-md bg-muted">
         {thumbUrl && (
           // eslint-disable-next-line jsx-a11y/alt-text
           <img src={thumbUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
@@ -34,10 +34,10 @@ export function FileItem({ job }: FileItemProps) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <p className="truncate text-sm font-medium text-zinc-100" title={job.file.name}>
+          <p className="truncate text-sm font-medium text-foreground" title={job.file.name}>
             {job.file.name}
           </p>
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted-foreground">
             {formatBytes(job.file.size)} · {job.sourceMime.replace('image/', '')}
           </span>
         </div>
@@ -63,7 +63,7 @@ export function FileItem({ job }: FileItemProps) {
               const filename = replaceExtension(job.file.name, job.output!.extension);
               triggerDownload(job.output!.blob, filename);
             }}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500"
+            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90"
           >
             Descargar
           </button>
@@ -72,7 +72,7 @@ export function FileItem({ job }: FileItemProps) {
           <button
             type="button"
             onClick={() => requeue(job.id)}
-            className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+            className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground/80 transition hover:border-foreground/30 hover:text-foreground"
             title="Volver a convertir con las opciones actuales"
           >
             Re-codificar
@@ -82,7 +82,7 @@ export function FileItem({ job }: FileItemProps) {
           <button
             type="button"
             onClick={() => cancel(job.id)}
-            className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+            className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground/80 transition hover:border-foreground/30 hover:text-foreground"
           >
             Cancelar
           </button>
@@ -91,7 +91,7 @@ export function FileItem({ job }: FileItemProps) {
           type="button"
           onClick={() => remove(job.id)}
           aria-label={`Quitar ${job.file.name}`}
-          className="rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300"
+          className="rounded-md p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
             <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L10 8.94l3.47-3.47a.75.75 0 1 1 1.06 1.06L11.06 10l3.47 3.47a.75.75 0 1 1-1.06 1.06L10 11.06l-3.47 3.47a.75.75 0 0 1-1.06-1.06L8.94 10 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />

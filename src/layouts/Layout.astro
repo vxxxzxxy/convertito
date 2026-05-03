@@ -20,9 +20,21 @@ const {
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+    <script is:inline>
+      (function () {
+        try {
+          const stored = localStorage.getItem('theme');
+          const isDark =
+            stored === 'dark' ||
+            ((stored === 'system' || stored === null) &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', isDark);
+        } catch {}
+      })();
+    </script>
     <title>{title}</title>
   </head>
-  <body class="min-h-dvh bg-zinc-950 text-zinc-100 antialiased">
+  <body class="min-h-dvh bg-background text-foreground antialiased">
     <slot />
   </body>
 </html>

@@ -16,13 +16,13 @@ export function JobProgress({ job }: JobProgressProps) {
   }, [job.status]);
 
   if (job.status === 'queued') {
-    return <span className="text-xs text-zinc-500">En cola…</span>;
+    return <span className="text-xs text-muted-foreground">En cola…</span>;
   }
   if (job.status === 'running') {
     const elapsed = job.startedAt ? ((now - job.startedAt) / 1000).toFixed(1) : '0.0';
     return (
-      <span className="flex items-center gap-2 text-xs text-zinc-400">
-        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+      <span className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         Convirtiendo… {elapsed}s
       </span>
     );
@@ -31,16 +31,16 @@ export function JobProgress({ job }: JobProgressProps) {
     const ratio = job.output.bytes / job.file.size;
     const delta = (ratio * 100).toFixed(0);
     return (
-      <span className="text-xs text-emerald-400">
+      <span className="text-xs text-primary">
         Listo · {formatBytes(job.output.bytes)} ({delta}% del original)
       </span>
     );
   }
   if (job.status === 'cancelled') {
-    return <span className="text-xs text-zinc-500">Cancelado.</span>;
+    return <span className="text-xs text-muted-foreground">Cancelado.</span>;
   }
   if (job.status === 'error') {
-    return <span className="text-xs text-rose-400">Error: {job.error}</span>;
+    return <span className="text-xs text-destructive">Error: {job.error}</span>;
   }
   return null;
 }

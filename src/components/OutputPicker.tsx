@@ -1,4 +1,12 @@
 import { useMemo } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { availableOutputsFor, engines, pick } from '../engines/registry';
 import type { EncoderOptions } from '../engines/types';
 
@@ -34,7 +42,7 @@ export function OutputPicker({
 
   if (!route) {
     return (
-      <p className="text-xs text-amber-400">
+      <p className="text-xs text-destructive">
         No hay un conversor disponible para {sourceMime} → {targetMime}.
       </p>
     );
@@ -42,47 +50,53 @@ export function OutputPicker({
 
   const supportsQuality = 'quality' in defaults;
   const supportsLossless = 'lossless' in defaults;
+  const qualityValue = Number(merged.quality ?? 80);
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-sm">
-      <label className="flex items-center gap-2">
-        <span className="text-zinc-400">Salida</span>
-        <select
-          disabled={disabled}
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground">Salida</span>
+        <Select
           value={targetMime}
-          onChange={(e) => onTargetChange(e.target.value)}
-          className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50"
+          onValueChange={onTargetChange}
+          disabled={disabled}
         >
-          {outputs.map((o) => (
-            <option key={o.mime} value={o.mime}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger size="sm" aria-label="Formato de salida">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {outputs.map((o) => (
+              <SelectItem key={o.mime} value={o.mime}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {supportsQuality && !merged.lossless && (
-        <label className="flex items-center gap-2">
-          <span className="text-zinc-400">Calidad</span>
-          <input
-            type="range"
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">Calidad</span>
+          <Slider
+            aria-label="Calidad"
             min={1}
             max={100}
-            value={Number(merged.quality ?? 80)}
+            step={1}
+            value={[qualityValue]}
             disabled={disabled}
-            onChange={(e) =>
-              onOptionsChange({ ...options, quality: Number(e.target.value) })
+            onValueChange={([v]) =>
+              onOptionsChange({ ...options, quality: v })
             }
-            className="accent-emerald-500"
+            className="w-32"
           />
-          <span className="w-8 text-right tabular-nums text-zinc-300">
-            {Number(merged.quality ?? 80)}
+          <span className="w-8 text-right tabular-nums text-foreground">
+            {qualityValue}
           </span>
-        </label>
+        </div>
       )}
 
       {supportsLossless && (
-        <label className="flex items-center gap-2 text-zinc-400">
+        <label className="flex items-center gap-2 text-muted-foreground">
           <input
             type="checkbox"
             checked={Boolean(merged.lossless)}
@@ -90,7 +104,7 @@ export function OutputPicker({
             onChange={(e) =>
               onOptionsChange({ ...options, lossless: e.target.checked })
             }
-            className="accent-emerald-500"
+            className="accent-primary"
           />
           Sin pérdida
         </label>
