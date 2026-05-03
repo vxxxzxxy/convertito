@@ -1,0 +1,73 @@
+---
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
+
+type IconName = 'image' | 'music' | 'fileText';
+
+interface Props {
+  title: string;
+  description: string;
+  href?: string;
+  icon: IconName;
+  comingSoon?: boolean;
+}
+
+const { title, description, href, icon, comingSoon = false } = Astro.props;
+
+// Inline SVGs (lucide paths) — keeps Astro components free of React hydration.
+const icons: Record<IconName, string> = {
+  image:
+    '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+  music:
+    '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  fileText:
+    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+};
+
+const iconSvg = icons[icon];
+const Tag = comingSoon || !href ? 'div' : 'a';
+const linkProps = Tag === 'a' ? { href } : {};
+---
+
+<Tag
+  {...linkProps}
+  class:list={[
+    'group block transition-all',
+    comingSoon
+      ? 'cursor-not-allowed opacity-60'
+      : Tag === 'a'
+        ? 'hover:-translate-y-0.5'
+        : '',
+  ]}
+  aria-disabled={comingSoon ? 'true' : undefined}
+>
+  <Card className="h-full">
+    <CardHeader>
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            set:html={iconSvg}
+          />
+        </div>
+        {
+          comingSoon && (
+            <span class="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+              Pronto
+            </span>
+          )
+        }
+      </div>
+      <CardTitle className="mt-3">{title}</CardTitle>
+      <CardDescription>{description}</CardDescription>
+    </CardHeader>
+    <CardContent />
+  </Card>
+</Tag>
