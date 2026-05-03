@@ -6,25 +6,13 @@ import { ResultActions } from './ResultActions';
 
 function FileList() {
   const { state } = useJobs();
-
-  // Debug panel visible in dev so we can see state without DevTools.
-  const debugPanel = import.meta.env.DEV ? (
-    <pre className="mt-3 overflow-x-auto rounded bg-rose-950/40 p-2 text-[10px] text-rose-200">
-      [debug] jobs={state.jobs.length} active={state.activeId ?? 'none'}{'\n'}
-      {state.jobs.map((j) => `  ${j.id.slice(0, 8)} ${j.sourceMime}→${j.targetMime} ${j.status}${j.error ? ' err=' + j.error : ''}`).join('\n')}
-    </pre>
-  ) : null;
-
-  if (state.jobs.length === 0) return debugPanel;
+  if (state.jobs.length === 0) return null;
   return (
-    <>
-      {debugPanel}
-      <ul className="mt-6 space-y-3">
-        {state.jobs.map((job) => (
-          <FileItem key={job.id} job={job} />
-        ))}
-      </ul>
-    </>
+    <ul className="mt-6 space-y-3">
+      {state.jobs.map((job) => (
+        <FileItem key={job.id} job={job} />
+      ))}
+    </ul>
   );
 }
 

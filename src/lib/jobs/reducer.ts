@@ -29,10 +29,37 @@ export function jobsReducer(state: JobsState, action: JobsAction): JobsState {
       }));
       return { ...state, jobs: [...state.jobs, ...fresh] };
     }
-    case 'SET_TARGET':
-      return patchJob(state, action.id, { targetMime: action.targetMime, options: {} });
+    case 'SET_TARGET': {
+      // Changing the output format throws away the previous result and
+      // re-queues so the runner produces a fresh blob in the new format.
+      const job = state.jobs.find((j) => j.id === action.id);
+      if (job?.output) URL.revokeObjectURL(job.output.url);
+      return patchJob(state, action.id, {
+        targetMime: action.targetMime,
+        options: {},
+        output: undefined,
+        error: undefined,
+        status: 'queued',
+        startedAt: undefined,
+        endedAt: undefined,
+      });
+    }
     case 'SET_OPTIONS':
+      // Options are stored without re-running. The slider is chatty (onChange
+      // fires per tick), so we don't want to re-encode 100 times during a drag.
+      // The user clicks "Re-codificar" when they're happy with the values.
       return patchJob(state, action.id, { options: action.options });
+    case 'REQUEUE': {
+      const job = state.jobs.find((j) => j.id === action.id);
+      if (job?.output) URL.revokeObjectURL(job.output.url);
+      return patchJob(state, action.id, {
+        status: 'queued',
+        output: undefined,
+        error: undefined,
+        startedAt: undefined,
+        endedAt: undefined,
+      });
+    }
     case 'START':
       return {
         ...state,

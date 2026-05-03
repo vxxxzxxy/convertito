@@ -10,7 +10,7 @@ interface FileItemProps {
 }
 
 export function FileItem({ job }: FileItemProps) {
-  const { setTarget, setOptions, cancel, remove } = useJobs();
+  const { setTarget, setOptions, requeue, cancel, remove } = useJobs();
   const [thumbUrl, setThumbUrl] = useState<string | null>(null);
 
   // Generate a preview URL for the source file. We revoke when the file/job
@@ -21,7 +21,8 @@ export function FileItem({ job }: FileItemProps) {
     return () => URL.revokeObjectURL(url);
   }, [job.file]);
 
-  const isBusy = job.status === 'queued' || job.status === 'running';
+  const isRunning = job.status === 'running';
+  const isFinal = job.status === 'done' || job.status === 'error' || job.status === 'cancelled';
 
   return (
     <li className="flex flex-col gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 sm:flex-row sm:items-start">
@@ -45,7 +46,7 @@ export function FileItem({ job }: FileItemProps) {
             sourceMime={job.sourceMime}
             targetMime={job.targetMime}
             options={job.options}
-            disabled={isBusy || job.status === 'done'}
+            disabled={isRunning}
             onTargetChange={(mime) => setTarget(job.id, mime)}
             onOptionsChange={(opts) => setOptions(job.id, opts)}
           />
@@ -67,7 +68,17 @@ export function FileItem({ job }: FileItemProps) {
             Descargar
           </button>
         )}
-        {isBusy && (
+        {isFinal && (
+          <button
+            type="button"
+            onClick={() => requeue(job.id)}
+            className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
+            title="Volver a convertir con las opciones actuales"
+          >
+            Re-codificar
+          </button>
+        )}
+        {isRunning && (
           <button
             type="button"
             onClick={() => cancel(job.id)}

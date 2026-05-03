@@ -27,6 +27,7 @@ export interface JobsApi {
   addFiles: (files: File[]) => AddFilesResult;
   setTarget: (id: string, targetMime: string) => void;
   setOptions: (id: string, options: EncoderOptions) => void;
+  requeue: (id: string) => void;
   cancel: (id: string) => void;
   remove: (id: string) => void;
   clearDone: () => void;
@@ -45,28 +46,12 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   jobsRef.current = state.jobs;
 
   useEffect(() => {
-    try {
-      workerRef.current = spawnConvertWorker();
-      // eslint-disable-next-line no-console
-      console.log('[convertito] worker spawned ok');
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('[convertito] failed to spawn worker', e);
-    }
+    workerRef.current = spawnConvertWorker();
     return () => {
       workerRef.current?.terminate();
       workerRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[convertito] state changed', {
-      jobs: state.jobs.length,
-      activeId: state.activeId,
-      statuses: state.jobs.map((j) => j.status),
-    });
-  }, [state]);
 
   // Drive serial processing: whenever the worker is idle, pick up the next
   // queued job. The guard `activeId === null` and the per-job check
@@ -170,13 +155,14 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     (id: string, options: EncoderOptions) => dispatch({ type: 'SET_OPTIONS', id, options }),
     [],
   );
+  const requeue = useCallback((id: string) => dispatch({ type: 'REQUEUE', id }), []);
   const cancel = useCallback((id: string) => dispatch({ type: 'CANCEL', id }), []);
   const remove = useCallback((id: string) => dispatch({ type: 'REMOVE', id }), []);
   const clearDone = useCallback(() => dispatch({ type: 'CLEAR_DONE' }), []);
 
   const value = useMemo<JobsApi>(
-    () => ({ state, addFiles, setTarget, setOptions, cancel, remove, clearDone }),
-    [state, addFiles, setTarget, setOptions, cancel, remove, clearDone],
+    () => ({ state, addFiles, setTarget, setOptions, requeue, cancel, remove, clearDone }),
+    [state, addFiles, setTarget, setOptions, requeue, cancel, remove, clearDone],
   );
 
   return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;

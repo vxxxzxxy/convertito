@@ -37,6 +37,7 @@ export type JobsAction =
     }
   | { type: 'SET_TARGET'; id: string; targetMime: string }
   | { type: 'SET_OPTIONS'; id: string; options: EncoderOptions }
+  | { type: 'REQUEUE'; id: string }
   | { type: 'START'; id: string }
   | { type: 'COMPLETE'; id: string; output: JobOutput }
   | { type: 'ERROR'; id: string; error: string }
