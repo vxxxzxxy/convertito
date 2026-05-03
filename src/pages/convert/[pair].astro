@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ConverterApp from '../../components/ConverterApp';
+import Footer from '../../components/Footer.astro';
 import { pairs, type ConversionPair } from '../../lib/pairs';
 
 export function getStaticPaths() {
@@ -19,7 +20,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString(
 ---
 
 <Layout title={`${pair.title} · convertito`} description={pair.description} canonical={canonical}>
-  <main class="mx-auto max-w-3xl px-6 py-12 sm:py-16">
+  <main class="mx-auto max-w-5xl px-6 py-12 sm:py-16">
     <section>
       <p class="text-sm font-medium text-primary">
         {pair.source.label} → {pair.target.label}
@@ -52,14 +53,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString(
       </ul>
     </section>
 
-    <footer class="mt-16 border-t border-border pt-6 text-xs text-muted-foreground">
-      <p>
-        100% en tu navegador. Ningún archivo se sube. Las conversiones corren localmente
-        con WebAssembly.
-      </p>
-      <p class="mt-1">
-        <a href="/" class="underline-offset-2 hover:underline">← Volver al inicio</a>
-      </p>
-    </footer>
+    <Footer />
   </main>
 </Layout>

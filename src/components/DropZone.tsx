@@ -52,7 +52,7 @@ export function DropZone() {
           'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-14 text-center transition',
           dragOver
             ? 'border-primary bg-primary/10'
-            : 'border-border bg-muted/40 hover:border-foreground/30 hover:bg-muted/60',
+            : 'border-border bg-muted/40 hover:border-primary/60 hover:bg-primary/5',
         ].join(' ')}
       >
         <svg
@@ -61,9 +61,13 @@ export function DropZone() {
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className="mb-4 h-10 w-10 text-muted-foreground"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
         <p className="text-base font-medium text-foreground">
           Arrastra imágenes aquí o haz click

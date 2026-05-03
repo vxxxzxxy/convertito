@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ConverterApp from '../components/ConverterApp';
+import PopularConversions from '../components/PopularConversions.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="Convertidor de imágenes · convertito"
+  description="Convierte JPG, PNG, WebP, AVIF y JPEG XL en tu navegador. Sin subidas, sin marcas de agua, gratis."
+>
+  <main class="mx-auto max-w-5xl px-6 py-12 sm:py-16">
+    <section>
+      <p class="text-sm font-medium text-primary">Imágenes</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+        Convertidor de imágenes
+      </h1>
+      <p class="mt-2 text-muted-foreground">
+        Convierte JPG, PNG, WebP, AVIF y JPEG XL en tu navegador. Sin servidor, sin marcas de agua.
+      </p>
+    </section>
+
+    <div class="mt-10">
+      <ConverterApp client:only="react" />
+    </div>
+
+    <PopularConversions />
+
+    <Footer />
+  </main>
+</Layout>
