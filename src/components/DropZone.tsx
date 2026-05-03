@@ -1,9 +1,9 @@
-import { useCallback, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { labelForMime, useJobs } from '../lib/jobs/context';
 import { inputExtensionsFor } from '../engines/registry';
 
 export function DropZone() {
-  const { addFiles, acceptedSourceMimes } = useJobs();
+  const { addFiles, acceptedSourceMimes, state } = useJobs();
   const accept = useMemo(() => {
     const exts = inputExtensionsFor(acceptedSourceMimes).map((e) => `.${e}`);
     return [...acceptedSourceMimes, ...exts].join(',');
@@ -16,6 +16,14 @@ export function DropZone() {
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<string>('');
   const inputId = useId();
+
+  // Wipe the status line when the user removes/cancels a job — the message
+  // belongs to a previous drop and stops being relevant once the queue shrinks.
+  const prevJobsLength = useRef(state.jobs.length);
+  useEffect(() => {
+    if (state.jobs.length < prevJobsLength.current) setStatus('');
+    prevJobsLength.current = state.jobs.length;
+  }, [state.jobs.length]);
 
   const handleFiles = useCallback(
     (files: FileList | null | undefined) => {

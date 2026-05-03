@@ -14,6 +14,24 @@ function bool(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;
 }
 
+// JPEG has no alpha channel. Composite RGBA onto an opaque background before
+// encoding — otherwise transparent pixels reveal whatever garbage RGB the PNG
+// stored beneath them, producing the muddy artifacts users see when they
+// expect a clean white fill.
+function flattenAlpha(image: ImageData, bgR: number, bgG: number, bgB: number): ImageData {
+  const { width, height, data } = image;
+  const out = new Uint8ClampedArray(data.length);
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3]! / 255;
+    const inv = 1 - a;
+    out[i] = data[i]! * a + bgR * inv;
+    out[i + 1] = data[i + 1]! * a + bgG * inv;
+    out[i + 2] = data[i + 2]! * a + bgB * inv;
+    out[i + 3] = 255;
+  }
+  return new ImageData(out, width, height);
+}
+
 export const jpegEncoder: Encoder = {
   id: 'jsquash-jpeg',
   outputMime: 'image/jpeg',
@@ -22,7 +40,8 @@ export const jpegEncoder: Encoder = {
   defaultOptions: { quality: 80 },
   async encode(media, options) {
     const { default: encode } = await import('@jsquash/jpeg/encode');
-    return encode(firstFrame(media), {
+    const flat = flattenAlpha(firstFrame(media), 255, 255, 255);
+    return encode(flat, {
       quality: num(options?.quality, 80),
     });
   },
