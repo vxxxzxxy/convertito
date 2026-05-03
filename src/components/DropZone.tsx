@@ -1,13 +1,17 @@
-import { useCallback, useId, useRef, useState } from 'react';
-import { useJobs } from '../lib/jobs/context';
-import { allInputMimes } from '../engines/registry';
-
-const ACCEPT = allInputMimes()
-  .concat(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.jxl'])
-  .join(',');
+import { useCallback, useId, useMemo, useRef, useState } from 'react';
+import { labelForMime, useJobs } from '../lib/jobs/context';
+import { inputExtensionsFor } from '../engines/registry';
 
 export function DropZone() {
-  const { addFiles } = useJobs();
+  const { addFiles, acceptedSourceMimes } = useJobs();
+  const accept = useMemo(() => {
+    const exts = inputExtensionsFor(acceptedSourceMimes).map((e) => `.${e}`);
+    return [...acceptedSourceMimes, ...exts].join(',');
+  }, [acceptedSourceMimes]);
+  const formatList = useMemo(
+    () => acceptedSourceMimes.map(labelForMime).join(' · '),
+    [acceptedSourceMimes],
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<string>('');
@@ -65,14 +69,14 @@ export function DropZone() {
           Arrastra imágenes aquí o haz click
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          JPEG · PNG · WebP · AVIF · JPEG&nbsp;XL
+          {formatList}
         </p>
         <input
           id={inputId}
           ref={inputRef}
           type="file"
           multiple
-          accept={ACCEPT}
+          accept={accept}
           onChange={(e) => {
             handleFiles(e.target.files);
             // Reset so re-selecting the same file fires onChange again.

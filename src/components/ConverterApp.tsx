@@ -30,9 +30,20 @@ function IsolationCheck() {
   return null;
 }
 
-export default function ConverterApp() {
+interface ConverterAppProps {
+  defaultTargetMime?: string;
+  acceptedSourceMimes?: readonly string[];
+}
+
+export default function ConverterApp({
+  defaultTargetMime,
+  acceptedSourceMimes,
+}: ConverterAppProps = {}) {
   return (
-    <JobsProvider>
+    <JobsProvider
+      defaultTargetMime={defaultTargetMime}
+      acceptedSourceMimes={acceptedSourceMimes}
+    >
       <IsolationCheck />
       <DropZone />
       <FileList />

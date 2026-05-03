@@ -1,0 +1,65 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ConverterApp from '../../components/ConverterApp';
+import { pairs, type ConversionPair } from '../../lib/pairs';
+
+export function getStaticPaths() {
+  return pairs.map((pair) => ({
+    params: { pair: pair.slug },
+    props: { pair },
+  }));
+}
+
+interface Props {
+  pair: ConversionPair;
+}
+
+const { pair } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
+---
+
+<Layout title={`${pair.title} · convertito`} description={pair.description} canonical={canonical}>
+  <main class="mx-auto max-w-3xl px-6 py-12 sm:py-16">
+    <section>
+      <p class="text-sm font-medium text-primary">
+        {pair.source.label} → {pair.target.label}
+      </p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{pair.title}</h1>
+      <p class="mt-2 text-muted-foreground">{pair.description}</p>
+    </section>
+
+    <div class="mt-10">
+      <ConverterApp
+        client:only="react"
+        defaultTargetMime={pair.target.mime}
+        acceptedSourceMimes={[pair.source.mime]}
+      />
+    </div>
+
+    <section aria-labelledby="why-heading" class="mt-12">
+      <h2 id="why-heading" class="text-lg font-semibold text-foreground">
+        ¿Por qué convertir a {pair.target.label}?
+      </h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+        {
+          pair.why.map((reason) => (
+            <li class="flex gap-2">
+              <span aria-hidden="true" class="mt-1 size-1.5 shrink-0 rounded-full bg-primary" />
+              <span>{reason}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <footer class="mt-16 border-t border-border pt-6 text-xs text-muted-foreground">
+      <p>
+        100% en tu navegador. Ningún archivo se sube. Las conversiones corren localmente
+        con WebAssembly.
+      </p>
+      <p class="mt-1">
+        <a href="/" class="underline-offset-2 hover:underline">← Volver al inicio</a>
+      </p>
+    </footer>
+  </main>
+</Layout>

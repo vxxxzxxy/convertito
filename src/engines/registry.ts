@@ -77,3 +77,17 @@ export function allInputMimes(): string[] {
   }
   return [...set];
 }
+
+/** Extensions registered for a given list of input MIMEs (without leading dot). */
+export function inputExtensionsFor(mimes: readonly string[]): string[] {
+  const set = new Set<string>();
+  const wanted = new Set(mimes);
+  for (const engine of engines) {
+    for (const decoder of engine.decoders) {
+      if (decoder.inputMimes.some((m) => wanted.has(m))) {
+        for (const ext of decoder.inputExtensions) set.add(ext);
+      }
+    }
+  }
+  return [...set];
+}

@@ -1,14 +1,17 @@
 ---
 import '../styles/global.css';
+import { ModeToggle } from '../components/ModeToggle';
 
 interface Props {
   title?: string;
   description?: string;
+  canonical?: string;
 }
 
 const {
   title = 'convertito',
   description = 'Convierte imágenes en tu navegador. Sin servidor, sin subidas, sin coste.',
+  canonical,
 } = Astro.props;
 ---
 
@@ -18,6 +21,11 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {canonical && <meta property="og:url" content={canonical} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline>
@@ -35,6 +43,14 @@ const {
     <title>{title}</title>
   </head>
   <body class="min-h-dvh bg-background text-foreground antialiased">
+    <header class="border-b border-border">
+      <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+        <a href="/" class="text-base font-semibold tracking-tight text-foreground">
+          convertito
+        </a>
+        <ModeToggle client:load />
+      </div>
+    </header>
     <slot />
   </body>
 </html>

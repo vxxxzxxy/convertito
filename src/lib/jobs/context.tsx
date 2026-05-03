@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { EncoderOptions } from '../../engines/types';
+import { allInputMimes } from '../../engines/registry';
 import { detectMime } from '../files';
 import { checkFileSize } from '../memory';
 import { spawnConvertWorker, transferConvertParams, type ConvertWorker } from '../workers';
@@ -31,13 +32,39 @@ export interface JobsApi {
   cancel: (id: string) => void;
   remove: (id: string) => void;
   clearDone: () => void;
+  /** Source MIMEs this provider accepts. Resolved against the registry if no filter was passed. */
+  acceptedSourceMimes: readonly string[];
 }
 
 const JobsContext = createContext<JobsApi | null>(null);
 
-const DEFAULT_TARGET = 'image/webp';
+const FALLBACK_TARGET = 'image/webp';
 
-export function JobsProvider({ children }: { children: ReactNode }) {
+const MIME_LABELS: Readonly<Record<string, string>> = {
+  'image/jpeg': 'JPG',
+  'image/png': 'PNG',
+  'image/webp': 'WebP',
+  'image/avif': 'AVIF',
+  'image/jxl': 'JPEG XL',
+};
+
+export function labelForMime(mime: string): string {
+  return MIME_LABELS[mime] ?? mime;
+}
+
+export interface JobsProviderProps {
+  children: ReactNode;
+  /** Default output format for newly added files. Falls back to WebP. */
+  defaultTargetMime?: string;
+  /** Restrict which input MIMEs are accepted. If omitted, the full registry is allowed. */
+  acceptedSourceMimes?: readonly string[];
+}
+
+export function JobsProvider({
+  children,
+  defaultTargetMime = FALLBACK_TARGET,
+  acceptedSourceMimes,
+}: JobsProviderProps) {
   const [state, dispatch] = useReducer(jobsReducer, initialJobsState);
   const workerRef = useRef<ConvertWorker | null>(null);
   // Hold the latest jobs in a ref so the runner effect can find the next
@@ -116,15 +143,27 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  // Capture latest config in a ref so the addFiles callback identity stays stable.
+  const configRef = useRef({ defaultTargetMime, acceptedSourceMimes });
+  configRef.current = { defaultTargetMime, acceptedSourceMimes };
+
   const addFiles = useCallback((files: File[]): AddFilesResult => {
     const items: { file: File; sourceMime: string }[] = [];
     const warnings: string[] = [];
     let unsupported = 0;
     let blocked = 0;
+    const { defaultTargetMime: target, acceptedSourceMimes: accepted } = configRef.current;
+    const acceptedSet = accepted ? new Set(accepted) : null;
     for (const file of files) {
       const mime = detectMime(file);
       if (!mime) {
         unsupported++;
+        continue;
+      }
+      if (acceptedSet && !acceptedSet.has(mime)) {
+        unsupported++;
+        const allowed = accepted!.map(labelForMime).join(', ');
+        warnings.push(`${file.name}: este conversor solo acepta ${allowed}`);
         continue;
       }
       const memCheck = checkFileSize(file.size);
@@ -141,7 +180,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     if (items.length > 0) {
       dispatch({
         type: 'ADD_FILES',
-        payload: { items, defaultTarget: DEFAULT_TARGET },
+        payload: { items, defaultTarget: target },
       });
     }
     return { added: items.length, unsupported, blocked, warnings };
@@ -160,9 +199,34 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const remove = useCallback((id: string) => dispatch({ type: 'REMOVE', id }), []);
   const clearDone = useCallback(() => dispatch({ type: 'CLEAR_DONE' }), []);
 
+  const resolvedAcceptedMimes = useMemo<readonly string[]>(
+    () => acceptedSourceMimes ?? allInputMimes(),
+    [acceptedSourceMimes],
+  );
+
   const value = useMemo<JobsApi>(
-    () => ({ state, addFiles, setTarget, setOptions, requeue, cancel, remove, clearDone }),
-    [state, addFiles, setTarget, setOptions, requeue, cancel, remove, clearDone],
+    () => ({
+      state,
+      addFiles,
+      setTarget,
+      setOptions,
+      requeue,
+      cancel,
+      remove,
+      clearDone,
+      acceptedSourceMimes: resolvedAcceptedMimes,
+    }),
+    [
+      state,
+      addFiles,
+      setTarget,
+      setOptions,
+      requeue,
+      cancel,
+      remove,
+      clearDone,
+      resolvedAcceptedMimes,
+    ],
   );
 
   return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;
