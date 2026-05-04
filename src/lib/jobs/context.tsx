@@ -47,6 +47,9 @@ const MIME_LABELS: Readonly<Record<string, string>> = {
   'image/webp': 'WebP',
   'image/avif': 'AVIF',
   'image/jxl': 'JPEG XL',
+  'image/heic': 'HEIC',
+  'image/heif': 'HEIF',
+  'image/gif': 'GIF',
 };
 
 export function labelForMime(mime: string): string {

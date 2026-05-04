@@ -20,6 +20,8 @@ const JPG: ConversionFormat = { mime: 'image/jpeg', label: 'JPG', ext: 'jpg' };
 const PNG: ConversionFormat = { mime: 'image/png', label: 'PNG', ext: 'png' };
 const WEBP: ConversionFormat = { mime: 'image/webp', label: 'WebP', ext: 'webp' };
 const AVIF: ConversionFormat = { mime: 'image/avif', label: 'AVIF', ext: 'avif' };
+const HEIC: ConversionFormat = { mime: 'image/heic', label: 'HEIC', ext: 'heic' };
+const GIF: ConversionFormat = { mime: 'image/gif', label: 'GIF', ext: 'gif' };
 
 export const pairs: ConversionPair[] = [
   {
@@ -110,6 +112,66 @@ export const pairs: ConversionPair[] = [
       'Archivos más pequeños cuando no necesitas transparencia (fondo blanco/sólido).',
       'Ideal para fotografía donde la pérdida no se nota.',
       'Conversión 100 % local: tus archivos no se suben a internet.',
+    ],
+  },
+  {
+    slug: 'heic-to-jpg',
+    category: 'image',
+    source: HEIC,
+    target: JPG,
+    title: 'Convertir HEIC a JPG',
+    description:
+      'Pasa las fotos HEIC de tu iPhone a JPG en el navegador. Sin instalar nada, sin subir archivos a un servidor.',
+    why: [
+      'JPG es el formato más universal: se abre en cualquier dispositivo o aplicación, HEIC todavía no.',
+      'Tus fotos no salen del navegador — la conversión corre en tu propio dispositivo.',
+      'Sin pérdida visual perceptible en condiciones normales de visualización.',
+      'Procesado con WebAssembly localmente: rápido y privado.',
+    ],
+  },
+  {
+    slug: 'heic-to-png',
+    category: 'image',
+    source: HEIC,
+    target: PNG,
+    title: 'Convertir HEIC a PNG',
+    description:
+      'Convierte tus fotos HEIC del iPhone a PNG sin pérdida. Útil cuando necesitas calidad máxima o transparencia.',
+    why: [
+      'PNG es sin pérdida: cada vez que reabres y guardas, no se degrada la imagen.',
+      'Compatible con cualquier editor o app de imagen, a diferencia de HEIC.',
+      'Conserva todos los detalles del HEIC original sin compresión adicional.',
+      'Tus archivos nunca salen del dispositivo.',
+    ],
+  },
+  {
+    slug: 'heic-to-webp',
+    category: 'image',
+    source: HEIC,
+    target: WEBP,
+    title: 'Convertir HEIC a WebP',
+    description:
+      'Convierte HEIC del iPhone a WebP para web moderna. Archivos ligeros y compatibles con todos los navegadores.',
+    why: [
+      'WebP pesa entre 25 % y 35 % menos que JPG con calidad equivalente, y es soportado por todos los navegadores modernos.',
+      'A diferencia de HEIC, WebP funciona sin problemas en webs, redes sociales y servicios de mensajería.',
+      'Soporta transparencia, lo que permite usar la imagen sin recortes.',
+      'Conversión 100 % local con WebAssembly: privado y sin coste.',
+    ],
+  },
+  {
+    slug: 'gif-to-png',
+    category: 'image',
+    source: GIF,
+    target: PNG,
+    title: 'Convertir GIF a PNG',
+    description:
+      'Saca un PNG estático del primer fotograma de un GIF. Ideal para recuperar una imagen limpia y editable.',
+    why: [
+      'PNG es sin pérdida y soporta transparencia, perfecto para conservar el frame tal cual.',
+      'GIF está limitado a 256 colores; PNG no tiene esa limitación.',
+      'Útil para extraer una imagen de un meme o miniatura sin instalar software.',
+      'Procesado en tu navegador: ningún GIF se sube a un servidor.',
     ],
   },
 ];

@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { availableOutputsFor, engines, pick } from '../engines/registry';
 import type { EncoderOptions } from '../engines/types';
+import { labelForMime } from '../lib/jobs/context';
 
 interface OutputPickerProps {
   sourceMime: string;
@@ -85,7 +86,7 @@ export function OutputPicker({
   if (!route) {
     return (
       <p className="text-xs text-destructive">
-        No hay un conversor disponible para {sourceMime} → {targetMime}.
+        No hay un conversor disponible para {labelForMime(sourceMime)} → {labelForMime(targetMime)}.
       </p>
     );
   }

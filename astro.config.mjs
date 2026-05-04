@@ -23,6 +23,10 @@ export default defineConfig({
     // `new URL(..., import.meta.url)`. Keeping them out of dep optimization
     // ensures Vite emits the asset references correctly from worker chunks.
     // (See vitejs/vite#19194, #11694.)
+    //
+    // gifuct-js is CommonJS only and Vite's auto-detection sometimes misses
+    // it when imported dynamically inside a Worker — forcing it (and gifenc)
+    // into the `include` list ensures both get pre-bundled to ESM up front.
     optimizeDeps: {
       exclude: [
         '@jsquash/avif',
@@ -31,6 +35,7 @@ export default defineConfig({
         '@jsquash/png',
         '@jsquash/webp',
       ],
+      include: ['gifuct-js', 'gifenc'],
     },
 
     worker: {

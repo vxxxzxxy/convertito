@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Job } from '../lib/jobs/types';
-import { useJobs } from '../lib/jobs/context';
+import { labelForMime, useJobs } from '../lib/jobs/context';
 import { formatBytes, replaceExtension, triggerDownload } from '../lib/files';
 import { OutputPicker } from './OutputPicker';
 import { JobProgress } from './JobProgress';
@@ -10,17 +10,39 @@ interface FileItemProps {
   job: Job;
 }
 
+// Formats no major browser (Chrome/Firefox/Edge) can render natively in <img>.
+// Safari decodes HEIC, but assuming the worst case here is harmless: when
+// the conversion finishes we swap to the output URL anyway, which IS
+// renderable everywhere.
+const NON_RENDERABLE_SOURCE_MIMES: ReadonlySet<string> = new Set([
+  'image/heic',
+  'image/heif',
+  'image/heic-sequence',
+  'image/heif-sequence',
+  'image/jxl',
+]);
+
 export function FileItem({ job }: FileItemProps) {
   const { setTarget, setOptions, convert, cancel, remove } = useJobs();
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+  const [sourceObjectUrl, setSourceObjectUrl] = useState<string | null>(null);
 
-  // Generate a preview URL for the source file. We revoke when the file/job
-  // changes so unloaded Job items don't leak.
+  // Object URL for the source file, used as the thumbnail until the output
+  // is ready. Skipped for formats the browser can't render in <img> — those
+  // show a placeholder icon instead of a broken image.
   useEffect(() => {
+    if (NON_RENDERABLE_SOURCE_MIMES.has(job.sourceMime)) {
+      setSourceObjectUrl(null);
+      return;
+    }
     const url = URL.createObjectURL(job.file);
-    setThumbUrl(url);
+    setSourceObjectUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [job.file]);
+  }, [job.file, job.sourceMime]);
+
+  // Prefer the converted output as preview once it exists — it's always a
+  // format the browser can render. Falls back to the source object URL,
+  // and finally to the placeholder when neither is renderable.
+  const previewUrl = job.output?.url ?? sourceObjectUrl;
 
   const isRunning = job.status === 'running';
   const isPending = job.status === 'pending';
@@ -28,10 +50,37 @@ export function FileItem({ job }: FileItemProps) {
 
   return (
     <li className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-start">
-      <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-md bg-muted">
-        {thumbUrl && (
+      <div
+        className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-md bg-muted"
+        title={
+          !previewUrl
+            ? 'Tu navegador no puede previsualizar este formato. La vista previa aparecerá al convertir.'
+            : undefined
+        }
+      >
+        {previewUrl ? (
           // eslint-disable-next-line jsx-a11y/alt-text
-          <img src={thumbUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <img src={previewUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-0.5 px-1 text-muted-foreground">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+              <circle cx="9" cy="9" r="2" />
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+            </svg>
+            <span className="text-[9px] font-medium uppercase tracking-wide">
+              {labelForMime(job.sourceMime)}
+            </span>
+          </div>
         )}
       </div>
       <div className="min-w-0 flex-1">

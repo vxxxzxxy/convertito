@@ -1,7 +1,9 @@
 import type { Decoder, Encoder, Engine } from './types';
 import { jsquashEngine } from './jsquash';
+import { heicEngine } from './heic';
+import { gifEngine } from './gif';
 
-export const engines: readonly Engine[] = [jsquashEngine];
+export const engines: readonly Engine[] = [jsquashEngine, heicEngine, gifEngine];
 
 export interface ConversionRoute {
   engine: Engine;
@@ -17,27 +19,48 @@ export interface ConversionRoute {
 export const enginePreferences: Readonly<Record<string, string>> = {};
 
 /**
- * Pick the route that should handle a given conversion. Returns `null` when
- * no engine supports the source → target pair.
+ * Pick the route that should handle a given conversion. Decoder and encoder
+ * may come from different engines — `DecodedMedia` (RGBA) is the pivot, so
+ * any decoder can hand off to any encoder. Returns `null` when no engine
+ * decodes the source or no engine encodes the target.
+ *
+ * When multiple engines provide decoders/encoders for the same MIME, the
+ * highest `priority` wins on each side (with `enginePreferences` allowing
+ * a per-pair override, currently unused).
  */
 export function pick(sourceMime: string, targetMime: string): ConversionRoute | null {
-  const candidates: ConversionRoute[] = [];
-  for (const engine of engines) {
-    const decoder = engine.decoders.find((d) => d.inputMimes.includes(sourceMime));
-    const encoder = engine.encoders.find((e) => e.outputMime === targetMime);
-    if (decoder && encoder) {
-      candidates.push({ engine, decoder, encoder });
-    }
-  }
-  if (candidates.length === 0) return null;
+  const decoderCandidates = engines
+    .flatMap((engine) =>
+      engine.decoders
+        .filter((d) => d.inputMimes.includes(sourceMime))
+        .map((decoder) => ({ engine, decoder })),
+    )
+    .sort((a, b) => b.engine.priority - a.engine.priority);
+  const encoderCandidates = engines
+    .flatMap((engine) =>
+      engine.encoders
+        .filter((e) => e.outputMime === targetMime)
+        .map((encoder) => ({ engine, encoder })),
+    )
+    .sort((a, b) => b.engine.priority - a.engine.priority);
+
+  if (decoderCandidates.length === 0 || encoderCandidates.length === 0) return null;
 
   const overrideId = enginePreferences[`${sourceMime}->${targetMime}`];
-  if (overrideId) {
-    const match = candidates.find((c) => c.engine.id === overrideId);
-    if (match) return match;
-  }
-  candidates.sort((a, b) => b.engine.priority - a.engine.priority);
-  return candidates[0]!;
+  const overrideEncoder = overrideId
+    ? encoderCandidates.find((c) => c.engine.id === overrideId)
+    : null;
+  const chosenEncoder = overrideEncoder ?? encoderCandidates[0]!;
+  const chosenDecoder = decoderCandidates[0]!;
+
+  // `engine` field is informational; the worker only uses decoder/encoder.
+  // We expose the encoder's engine here for back-compat with anything that
+  // reads `route.engine` for telemetry/labels.
+  return {
+    engine: chosenEncoder.engine,
+    decoder: chosenDecoder.decoder,
+    encoder: chosenEncoder.encoder,
+  };
 }
 
 export interface OutputOption {
@@ -48,13 +71,17 @@ export interface OutputOption {
 
 /**
  * For a given source MIME, returns the deduplicated list of output formats the
- * registry can produce. Used to populate the per-file output picker in the UI.
+ * registry can produce. Cross-engine: as long as *some* engine decodes the
+ * source, every encoder across all engines is a valid output (because the
+ * pipeline pivots on RGBA). Used to populate the per-file output picker.
  */
 export function availableOutputsFor(sourceMime: string): OutputOption[] {
+  const hasAnyDecoder = engines.some((e) =>
+    e.decoders.some((d) => d.inputMimes.includes(sourceMime)),
+  );
+  if (!hasAnyDecoder) return [];
   const seen = new Map<string, OutputOption>();
   for (const engine of engines) {
-    const hasDecoder = engine.decoders.some((d) => d.inputMimes.includes(sourceMime));
-    if (!hasDecoder) continue;
     for (const encoder of engine.encoders) {
       if (seen.has(encoder.outputMime)) continue;
       seen.set(encoder.outputMime, {
