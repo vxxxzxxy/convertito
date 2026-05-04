@@ -1,13 +1,19 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { useJobs } from '../lib/jobs/context';
 import { replaceExtension, triggerDownload } from '../lib/files';
 
 export function ResultActions() {
-  const { state, clearDone } = useJobs();
+  const { state, convert, clearDone } = useJobs();
   const [zipping, setZipping] = useState(false);
   const doneJobs = state.jobs.filter((j) => j.status === 'done' && j.output);
+  const pendingJobs = state.jobs.filter((j) => j.status === 'pending');
 
-  if (doneJobs.length === 0) return null;
+  // Show the bar when there's a bulk action that makes sense:
+  // - 2+ pending → "Convertir todo" earns its keep (1 pending is already
+  //   covered by the per-item button, no need to duplicate).
+  // - any done → ZIP/clear actions.
+  if (pendingJobs.length < 2 && doneJobs.length === 0) return null;
 
   async function downloadZip() {
     if (doneJobs.length === 0 || zipping) return;
@@ -27,28 +33,38 @@ export function ResultActions() {
     }
   }
 
+  function convertAll() {
+    for (const job of pendingJobs) convert(job.id);
+  }
+
   return (
     <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-card px-4 py-3 text-sm">
-      <span className="text-muted-foreground">
-        {doneJobs.length} {doneJobs.length === 1 ? 'archivo listo' : 'archivos listos'}
-      </span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground">
+        {pendingJobs.length >= 2 && (
+          <span>{pendingJobs.length} por convertir</span>
+        )}
+        {doneJobs.length > 0 && (
+          <span>
+            {doneJobs.length} {doneJobs.length === 1 ? 'archivo listo' : 'archivos listos'}
+          </span>
+        )}
+      </div>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={downloadZip}
-          disabled={zipping || doneJobs.length === 0}
-          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-        >
-          {zipping ? 'Empaquetando…' : 'Descargar todo (ZIP)'}
-        </button>
-        <button
-          type="button"
-          onClick={clearDone}
-          disabled={zipping}
-          className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground/80 transition hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
-        >
-          Limpiar listos
-        </button>
+        {pendingJobs.length >= 2 && (
+          <Button size="sm" onClick={convertAll}>
+            Convertir todo
+          </Button>
+        )}
+        {doneJobs.length > 0 && (
+          <>
+            <Button size="sm" onClick={downloadZip} disabled={zipping}>
+              {zipping ? 'Empaquetando…' : 'Descargar todo (ZIP)'}
+            </Button>
+            <Button size="sm" variant="outline" onClick={clearDone} disabled={zipping}>
+              Limpiar listos
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

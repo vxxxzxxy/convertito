@@ -31,7 +31,6 @@
     "client-zip": "^2.5.0",
     "clsx": "^2.1.1",
     "comlink": "^4.4.2",
-    "exifreader": "^4.38.1",
     "lucide-react": "^1.14.0",
     "pica": "^9.0.1",
     "radix-ui": "^1.4.3",
