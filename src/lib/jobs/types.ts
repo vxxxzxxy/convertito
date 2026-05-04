@@ -1,6 +1,6 @@
 import type { EncoderOptions } from '../../engines/types';
 
-export type JobStatus = 'queued' | 'running' | 'done' | 'error' | 'cancelled';
+export type JobStatus = 'pending' | 'queued' | 'running' | 'done' | 'error' | 'cancelled';
 
 export interface JobOutput {
   blob: Blob;
@@ -15,6 +15,11 @@ export interface Job {
   id: string;
   file: File;
   sourceMime: string;
+  /** Width of the source image in pixels. Undefined when the browser couldn't
+   * decode the file natively to read its header (e.g. JXL on Safari/Firefox). */
+  sourceWidth?: number;
+  /** Height of the source image in pixels. See sourceWidth. */
+  sourceHeight?: number;
   targetMime: string;
   options: EncoderOptions;
   status: JobStatus;
@@ -33,11 +38,19 @@ export interface JobsState {
 export type JobsAction =
   | {
       type: 'ADD_FILES';
-      payload: { items: { file: File; sourceMime: string }[]; defaultTarget: string };
+      payload: {
+        items: {
+          file: File;
+          sourceMime: string;
+          sourceWidth?: number;
+          sourceHeight?: number;
+        }[];
+        defaultTarget: string;
+      };
     }
   | { type: 'SET_TARGET'; id: string; targetMime: string }
   | { type: 'SET_OPTIONS'; id: string; options: EncoderOptions }
-  | { type: 'REQUEUE'; id: string }
+  | { type: 'CONVERT'; id: string }
   | { type: 'START'; id: string }
   | { type: 'COMPLETE'; id: string; output: JobOutput }
   | { type: 'ERROR'; id: string; error: string }

@@ -38,6 +38,7 @@ export const jpegEncoder: Encoder = {
   outputExtension: 'jpg',
   label: 'JPEG',
   defaultOptions: { quality: 80 },
+  qualityPresets: { high: 95, balanced: 80, small: 60 },
   async encode(media, options) {
     const { default: encode } = await import('@jsquash/jpeg/encode');
     const flat = flattenAlpha(firstFrame(media), 255, 255, 255);
@@ -65,6 +66,7 @@ export const webpEncoder: Encoder = {
   outputExtension: 'webp',
   label: 'WebP',
   defaultOptions: { quality: 80, lossless: false },
+  qualityPresets: { high: 90, balanced: 80, small: 60 },
   async encode(media, options) {
     const { default: encode } = await import('@jsquash/webp/encode');
     return encode(firstFrame(media), {
@@ -81,6 +83,7 @@ export const avifEncoder: Encoder = {
   label: 'AVIF',
   // speed 6 is libavif's default — balanced. Lower = slower & smaller.
   defaultOptions: { quality: 75, speed: 6 },
+  qualityPresets: { high: 85, balanced: 75, small: 50 },
   async encode(media, options) {
     const { default: encode } = await import('@jsquash/avif/encode');
     return encode(firstFrame(media), {
@@ -96,6 +99,7 @@ export const jxlEncoder: Encoder = {
   outputExtension: 'jxl',
   label: 'JPEG XL',
   defaultOptions: { quality: 80, effort: 7, lossless: false },
+  qualityPresets: { high: 95, balanced: 80, small: 60 },
   async encode(media, options) {
     const { default: encode } = await import('@jsquash/jxl/encode');
     return encode(firstFrame(media), {

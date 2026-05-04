@@ -19,19 +19,25 @@ function patchJob(state: JobsState, id: string, patch: Partial<Job>): JobsState 
 export function jobsReducer(state: JobsState, action: JobsAction): JobsState {
   switch (action.type) {
     case 'ADD_FILES': {
-      const fresh: Job[] = action.payload.items.map(({ file, sourceMime }) => ({
-        id: makeId(),
-        file,
-        sourceMime,
-        targetMime: action.payload.defaultTarget,
-        options: {},
-        status: 'queued',
-      }));
+      const fresh: Job[] = action.payload.items.map(
+        ({ file, sourceMime, sourceWidth, sourceHeight }) => ({
+          id: makeId(),
+          file,
+          sourceMime,
+          sourceWidth,
+          sourceHeight,
+          targetMime: action.payload.defaultTarget,
+          options: {},
+          // 'pending' parks the job until the user clicks "Convertir". The
+          // runner only picks up 'queued' so nothing happens automatically.
+          status: 'pending',
+        }),
+      );
       return { ...state, jobs: [...state.jobs, ...fresh] };
     }
     case 'SET_TARGET': {
-      // Changing the output format throws away the previous result and
-      // re-queues so the runner produces a fresh blob in the new format.
+      // Changing the output format throws away the previous result and parks
+      // the job back at 'pending' so the user re-confirms with a click.
       const job = state.jobs.find((j) => j.id === action.id);
       if (job?.output) URL.revokeObjectURL(job.output.url);
       return patchJob(state, action.id, {
@@ -39,7 +45,7 @@ export function jobsReducer(state: JobsState, action: JobsAction): JobsState {
         options: {},
         output: undefined,
         error: undefined,
-        status: 'queued',
+        status: 'pending',
         startedAt: undefined,
         endedAt: undefined,
       });
@@ -47,9 +53,11 @@ export function jobsReducer(state: JobsState, action: JobsAction): JobsState {
     case 'SET_OPTIONS':
       // Options are stored without re-running. The slider is chatty (onChange
       // fires per tick), so we don't want to re-encode 100 times during a drag.
-      // The user clicks "Re-codificar" when they're happy with the values.
+      // The user clicks "Convertir"/"Re-convertir" when they're happy with the values.
       return patchJob(state, action.id, { options: action.options });
-    case 'REQUEUE': {
+    case 'CONVERT': {
+      // Triggered by the explicit "Convertir" / "Re-convertir" button.
+      // Discards any prior output and re-queues so the runner picks it up.
       const job = state.jobs.find((j) => j.id === action.id);
       if (job?.output) URL.revokeObjectURL(job.output.url);
       return patchJob(state, action.id, {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 import type { Job } from '../lib/jobs/types';
 import { formatBytes } from '../lib/files';
 
@@ -15,6 +16,9 @@ export function JobProgress({ job }: JobProgressProps) {
     return () => clearInterval(id);
   }, [job.status]);
 
+  if (job.status === 'pending') {
+    return <span className="text-xs text-muted-foreground">Listo para convertir</span>;
+  }
   if (job.status === 'queued') {
     return <span className="text-xs text-muted-foreground">En cola…</span>;
   }
@@ -30,9 +34,12 @@ export function JobProgress({ job }: JobProgressProps) {
   if (job.status === 'done' && job.output) {
     const ratio = job.output.bytes / job.file.size;
     const delta = (ratio * 100).toFixed(0);
+    const Trend = ratio < 1 ? TrendingDown : ratio > 1 ? TrendingUp : null;
+    const trendClass = ratio < 1 ? 'text-primary' : 'text-muted-foreground';
     return (
-      <span className="text-xs text-primary">
+      <span className="inline-flex items-center gap-1 text-xs text-primary">
         Listo · {formatBytes(job.output.bytes)} ({delta}% del original)
+        {Trend && <Trend className={`size-3 ${trendClass}`} aria-hidden="true" />}
       </span>
     );
   }

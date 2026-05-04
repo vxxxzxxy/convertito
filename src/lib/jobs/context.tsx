@@ -25,10 +25,11 @@ export interface AddFilesResult {
 
 export interface JobsApi {
   state: JobsState;
-  addFiles: (files: File[]) => AddFilesResult;
+  addFiles: (files: File[]) => Promise<AddFilesResult>;
   setTarget: (id: string, targetMime: string) => void;
   setOptions: (id: string, options: EncoderOptions) => void;
-  requeue: (id: string) => void;
+  /** Start (or restart) the conversion for a job. Used by the "Convertir" / "Re-convertir" button. */
+  convert: (id: string) => void;
   cancel: (id: string) => void;
   remove: (id: string) => void;
   clearDone: () => void;
@@ -147,8 +148,13 @@ export function JobsProvider({
   const configRef = useRef({ defaultTargetMime, acceptedSourceMimes });
   configRef.current = { defaultTargetMime, acceptedSourceMimes };
 
-  const addFiles = useCallback((files: File[]): AddFilesResult => {
-    const items: { file: File; sourceMime: string }[] = [];
+  const addFiles = useCallback(async (files: File[]): Promise<AddFilesResult> => {
+    const items: {
+      file: File;
+      sourceMime: string;
+      sourceWidth?: number;
+      sourceHeight?: number;
+    }[] = [];
     const warnings: string[] = [];
     let unsupported = 0;
     let blocked = 0;
@@ -175,7 +181,21 @@ export function JobsProvider({
       if (memCheck.level === 'warn' && memCheck.reason) {
         warnings.push(`${file.name}: ${memCheck.reason}`);
       }
-      items.push({ file, sourceMime: mime });
+      // Sniff source dimensions via the browser's native decoder. Reads
+      // headers only, ~ms even for large files. Fails gracefully on formats
+      // the browser can't decode natively (e.g. JXL on Safari/Firefox) — the
+      // resize UI will fall back to "unavailable for this file".
+      let sourceWidth: number | undefined;
+      let sourceHeight: number | undefined;
+      try {
+        const bitmap = await createImageBitmap(file);
+        sourceWidth = bitmap.width;
+        sourceHeight = bitmap.height;
+        bitmap.close();
+      } catch {
+        /* unsupported native decode — leave dims undefined */
+      }
+      items.push({ file, sourceMime: mime, sourceWidth, sourceHeight });
     }
     if (items.length > 0) {
       dispatch({
@@ -194,7 +214,7 @@ export function JobsProvider({
     (id: string, options: EncoderOptions) => dispatch({ type: 'SET_OPTIONS', id, options }),
     [],
   );
-  const requeue = useCallback((id: string) => dispatch({ type: 'REQUEUE', id }), []);
+  const convert = useCallback((id: string) => dispatch({ type: 'CONVERT', id }), []);
   const cancel = useCallback((id: string) => dispatch({ type: 'CANCEL', id }), []);
   const remove = useCallback((id: string) => dispatch({ type: 'REMOVE', id }), []);
   const clearDone = useCallback(() => dispatch({ type: 'CLEAR_DONE' }), []);
@@ -210,7 +230,7 @@ export function JobsProvider({
       addFiles,
       setTarget,
       setOptions,
-      requeue,
+      convert,
       cancel,
       remove,
       clearDone,
@@ -221,7 +241,7 @@ export function JobsProvider({
       addFiles,
       setTarget,
       setOptions,
-      requeue,
+      convert,
       cancel,
       remove,
       clearDone,

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import type { Job } from '../lib/jobs/types';
 import { useJobs } from '../lib/jobs/context';
 import { formatBytes, replaceExtension, triggerDownload } from '../lib/files';
@@ -10,7 +11,7 @@ interface FileItemProps {
 }
 
 export function FileItem({ job }: FileItemProps) {
-  const { setTarget, setOptions, requeue, cancel, remove } = useJobs();
+  const { setTarget, setOptions, convert, cancel, remove } = useJobs();
   const [thumbUrl, setThumbUrl] = useState<string | null>(null);
 
   // Generate a preview URL for the source file. We revoke when the file/job
@@ -22,6 +23,7 @@ export function FileItem({ job }: FileItemProps) {
   }, [job.file]);
 
   const isRunning = job.status === 'running';
+  const isPending = job.status === 'pending';
   const isFinal = job.status === 'done' || job.status === 'error' || job.status === 'cancelled';
 
   return (
@@ -47,6 +49,8 @@ export function FileItem({ job }: FileItemProps) {
             targetMime={job.targetMime}
             options={job.options}
             disabled={isRunning}
+            sourceWidth={job.sourceWidth}
+            sourceHeight={job.sourceHeight}
             onTargetChange={(mime) => setTarget(job.id, mime)}
             onOptionsChange={(opts) => setOptions(job.id, opts)}
           />
@@ -68,15 +72,20 @@ export function FileItem({ job }: FileItemProps) {
             Descargar
           </button>
         )}
+        {isPending && (
+          <Button size="sm" onClick={() => convert(job.id)}>
+            Convertir
+          </Button>
+        )}
         {isFinal && (
-          <button
-            type="button"
-            onClick={() => requeue(job.id)}
-            className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground/80 transition hover:border-foreground/30 hover:text-foreground"
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => convert(job.id)}
             title="Volver a convertir con las opciones actuales"
           >
-            Re-codificar
-          </button>
+            Re-convertir
+          </Button>
         )}
         {isRunning && (
           <button

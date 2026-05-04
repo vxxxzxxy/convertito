@@ -51,6 +51,12 @@ export interface Decoder {
 
 export type EncoderOptions = Record<string, unknown>;
 
+export interface QualityPresets {
+  high: number;
+  balanced: number;
+  small: number;
+}
+
 export interface Encoder {
   /** Stable identifier — e.g. `'jsquash-webp'`. */
   id: string;
@@ -62,6 +68,8 @@ export interface Encoder {
   label: string;
   /** Defaults the picker / UI seeds the options dialog with. */
   defaultOptions: EncoderOptions;
+  /** If present, the OutputPicker renders preset chips that snap the quality slider. */
+  qualityPresets?: QualityPresets;
   encode(media: DecodedMedia, options?: EncoderOptions, signal?: AbortSignal): Promise<ArrayBuffer>;
 }
 

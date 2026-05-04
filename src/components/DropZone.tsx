@@ -26,9 +26,9 @@ export function DropZone() {
   }, [state.jobs.length]);
 
   const handleFiles = useCallback(
-    (files: FileList | null | undefined) => {
+    async (files: FileList | null | undefined) => {
       if (!files || files.length === 0) return;
-      const r = addFiles(Array.from(files));
+      const r = await addFiles(Array.from(files));
       const parts: string[] = [];
       if (r.added > 0) parts.push(`Añadidos ${r.added}`);
       if (r.unsupported > 0) parts.push(`${r.unsupported} sin soporte`);

@@ -23,6 +23,17 @@ const api = {
       throw new Error(`No engine supports ${params.sourceMime} → ${params.targetMime}`);
     }
     const decoded = await route.decoder.decode(params.input);
+    // Optional resize between decode and encode. The dynamic import keeps
+    // pica out of the worker bundle until a job actually needs it.
+    const resize = params.options?.resize as { width: number; height: number } | undefined;
+    if (resize && decoded.frames?.[0]) {
+      const { resizeImageData } = await import('../engines/resize');
+      decoded.frames[0].pixels = await resizeImageData(
+        decoded.frames[0].pixels,
+        resize.width,
+        resize.height,
+      );
+    }
     const encoded = await route.encoder.encode(decoded, params.options);
     const finalBytes = await injectMetadata(encoded, decoded.metadata, route.encoder.outputMime);
     const result: ConvertResult = {
