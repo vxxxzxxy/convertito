@@ -1,43 +1,95 @@
-# Astro Starter Kit: Minimal
+# convertito
 
-```sh
-pnpm create astro@latest -- --template minimal
+Conversor de archivos 100 % en el navegador. WASM-first, sin servidor, sin coste de hosting.
+
+Las imágenes nunca salen del dispositivo: el decodificador y el codificador corren en un Web Worker dentro del navegador del usuario. El sitio se sirve como estáticos.
+
+## Formatos soportados
+
+Imágenes (entrada → salida cualquier combinación viable):
+
+- JPG / PNG / WebP / AVIF — vía [`@jsquash`](https://github.com/jamsinclair/jSquash)
+- HEIC (entrada) — vía [`libheif-js`](https://github.com/catdad-experiments/libheif-js)
+- GIF — decoder con `gifuct-js`, encoder con `gifenc` (extrae el primer fotograma)
+
+El registro de pares concretos vive en `src/lib/pairs.ts`. Cada par tiene su propia ruta SEO en `/convert/<slug>`.
+
+## Arquitectura
+
+```
+Archivo del usuario
+      │
+      ▼
+DropZone (UI) ──► JobQueue (estado React)
+                       │
+                       ▼
+              convert.worker.ts (Comlink)
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+      Decoder                   Encoder
+   (jSquash / libheif /         (jSquash /
+    gifuct-js)                   gifenc)
+          │                         ▲
+          └─────► RGBA pivote ──────┘
+                       │
+                       ▼
+              Blob descargable
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- **`src/engines/`** — cada engine expone `decoders` y `encoders`. El `registry.ts` los combina por prioridad y permite que un decoder de un engine alimente al encoder de otro (el pivote es RGBA).
+- **`src/workers/convert.worker.ts`** — el trabajo pesado corre fuera del hilo principal vía Comlink.
+- **`src/lib/jobs/`** — máquina de estados de la cola de trabajos (pending → running → done/error).
+- **`src/lib/pairs.ts`** — pares destacados con copy en español para SEO.
 
-## 🚀 Project Structure
+### Cross-origin isolation
 
-Inside of your Astro project, you'll see the following folders and files:
+Para habilitar `SharedArrayBuffer` (necesario para WASM multi-hilo, p. ej. `ffmpeg-mt` en el futuro) la app se sirve con cabeceras COOP/COEP:
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+- Dev/preview: configuradas en `astro.config.mjs`.
+- Producción: `public/_headers` (formato Cloudflare Pages / Netlify).
+
+Se usa `Cross-Origin-Embedder-Policy: credentialless` en lugar de `require-corp` para no bloquear subrecursos de terceros.
+
+## Stack
+
+- [Astro 6](https://astro.build/) con integración de [React 19](https://react.dev/) para los componentes interactivos.
+- [Tailwind CSS 4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) (Radix) para la UI.
+- [Comlink](https://github.com/GoogleChromeLabs/comlink) para hablar con el Web Worker.
+- [pica](https://github.com/nodeca/pica) para redimensionado de alta calidad.
+- [Vitest](https://vitest.dev/) para tests.
+
+## Requisitos
+
+- Node ≥ 22.12
+- pnpm (recomendado)
+
+## Comandos
+
+| Comando         | Acción                                              |
+| :-------------- | :-------------------------------------------------- |
+| `pnpm install`  | Instala dependencias                                |
+| `pnpm dev`      | Servidor de desarrollo en `localhost:4321`          |
+| `pnpm build`    | Build de producción a `./dist/`                     |
+| `pnpm preview`  | Sirve el build localmente (con cabeceras COOP/COEP) |
+| `pnpm test`     | Tests unitarios (Vitest, una pasada)                |
+| `pnpm test:watch` | Tests en watch mode                               |
+
+## Estructura
+
 ```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+src/
+├── components/    # UI (React + Astro). ConverterApp es el entrypoint cliente.
+├── engines/       # Decoders / encoders organizados por familia (jsquash, heic, gif).
+├── layouts/
+├── lib/           # Utilidades: jobs, files, memoria, pares de conversión.
+├── pages/
+│   ├── index.astro
+│   ├── image.astro
+│   └── convert/[pair].astro
+├── styles/
+└── workers/       # convert.worker.ts (corre las conversiones).
+public/
+├── _headers       # COOP/COEP para producción.
+└── ...
+```
