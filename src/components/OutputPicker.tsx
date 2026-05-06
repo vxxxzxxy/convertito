@@ -17,6 +17,7 @@ import type { EncoderOptions } from '../engines/types';
 import { labelForMime } from '../lib/jobs/context';
 
 interface OutputPickerProps {
+  idPrefix: string;
   sourceMime: string;
   targetMime: string;
   options: EncoderOptions;
@@ -37,6 +38,7 @@ function findEncoderDefaults(targetMime: string): EncoderOptions {
 }
 
 export function OutputPicker({
+  idPrefix,
   sourceMime,
   targetMime,
   options,
@@ -95,6 +97,11 @@ export function OutputPicker({
   const supportsLossless = 'lossless' in defaults;
   const qualityValue = Number(merged.quality ?? 80);
   const canResize = sourceWidth !== undefined && sourceHeight !== undefined;
+  const losslessId = `${idPrefix}-lossless-${route.encoder.id}`;
+  const resizeId = `${idPrefix}-resize-${route.encoder.id}`;
+  const resizeWidthId = `${idPrefix}-resize-w-${route.encoder.id}`;
+  const resizeHeightId = `${idPrefix}-resize-h-${route.encoder.id}`;
+  const resizeRatioId = `${idPrefix}-resize-ratio-${route.encoder.id}`;
 
   const onWidthChange = (next: number) => {
     setResizeW(next);
@@ -196,14 +203,14 @@ export function OutputPicker({
       {supportsLossless && (
         <div className="flex items-center gap-2">
           <Checkbox
-            id={`lossless-${route.encoder.id}`}
+            id={losslessId}
             checked={Boolean(merged.lossless)}
             disabled={disabled}
             onCheckedChange={(v) =>
               onOptionsChange({ ...options, lossless: v === true })
             }
           />
-          <Label htmlFor={`lossless-${route.encoder.id}`} className="text-muted-foreground">
+          <Label htmlFor={losslessId} className="text-muted-foreground">
             Sin pérdida
           </Label>
         </div>
@@ -211,13 +218,13 @@ export function OutputPicker({
 
       <div className="flex items-center gap-2">
         <Switch
-          id={`resize-${route.encoder.id}`}
+          id={resizeId}
           checked={resizeOn}
           disabled={disabled || !canResize}
           onCheckedChange={setResizeOn}
         />
         <Label
-          htmlFor={`resize-${route.encoder.id}`}
+          htmlFor={resizeId}
           className={canResize ? 'text-muted-foreground' : 'text-muted-foreground/60'}
           title={canResize ? undefined : 'Tamaño no disponible para este formato'}
         >
@@ -229,11 +236,11 @@ export function OutputPicker({
       {resizeOn && canResize && (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
           <div className="flex items-center gap-1.5">
-            <Label htmlFor={`resize-w-${route.encoder.id}`} className="text-muted-foreground">
+            <Label htmlFor={resizeWidthId} className="text-muted-foreground">
               Ancho
             </Label>
             <Input
-              id={`resize-w-${route.encoder.id}`}
+              id={resizeWidthId}
               type="number"
               min={1}
               value={resizeW}
@@ -243,11 +250,11 @@ export function OutputPicker({
             />
           </div>
           <div className="flex items-center gap-1.5">
-            <Label htmlFor={`resize-h-${route.encoder.id}`} className="text-muted-foreground">
+            <Label htmlFor={resizeHeightId} className="text-muted-foreground">
               Alto
             </Label>
             <Input
-              id={`resize-h-${route.encoder.id}`}
+              id={resizeHeightId}
               type="number"
               min={1}
               value={resizeH}
@@ -258,13 +265,13 @@ export function OutputPicker({
           </div>
           <div className="flex items-center gap-2">
             <Checkbox
-              id={`resize-ratio-${route.encoder.id}`}
+              id={resizeRatioId}
               checked={keepRatio}
               disabled={disabled}
               onCheckedChange={(v) => setKeepRatio(v === true)}
             />
             <Label
-              htmlFor={`resize-ratio-${route.encoder.id}`}
+              htmlFor={resizeRatioId}
               className="text-muted-foreground"
             >
               Mantener proporción

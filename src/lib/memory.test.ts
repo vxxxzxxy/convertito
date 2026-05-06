@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkFileSize, checkPixelCount, combine, LIMITS } from './memory';
+import { analyzeSvgDimensions, checkFileSize, checkPixelCount, combine, LIMITS } from './memory';
 
 const MB = 1024 * 1024;
 
@@ -70,5 +70,39 @@ describe('memory checks', () => {
 describe('memory checks (assumes navigator.deviceMemory undefined or >=4 in test env)', () => {
   it('uses full thresholds with no deviceMemory downgrade', () => {
     expect(checkFileSize(LIMITS.warnBytes - 1).level).toBe('ok');
+  });
+});
+
+describe('analyzeSvgDimensions', () => {
+  it('reads absolute SVG dimensions', () => {
+    expect(analyzeSvgDimensions('<svg width="800" height="600" />')).toEqual({
+      kind: 'absolute',
+      width: 800,
+      height: 600,
+    });
+  });
+
+  it('derives missing height from width and viewBox ratio', () => {
+    expect(analyzeSvgDimensions('<svg width="800" viewBox="0 0 16 9" />')).toEqual({
+      kind: 'absolute',
+      width: 800,
+      height: 450,
+    });
+  });
+
+  it('derives missing width from height and viewBox ratio', () => {
+    expect(analyzeSvgDimensions('<svg height="450" viewBox="0 0 16 9" />')).toEqual({
+      kind: 'absolute',
+      width: 800,
+      height: 450,
+    });
+  });
+
+  it('treats percent sizing as viewBox-only', () => {
+    expect(analyzeSvgDimensions('<svg width="100%" height="100%" viewBox="0 0 1200 800" />')).toEqual({
+      kind: 'viewBox',
+      width: 1200,
+      height: 800,
+    });
   });
 });

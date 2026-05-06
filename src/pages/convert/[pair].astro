@@ -17,6 +17,7 @@ interface Props {
 
 const { pair } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString();
+const acceptedSourceMimes = pair.source.inputMimes ?? [pair.source.mime];
 ---
 
 <Layout title={`${pair.title} · convertito`} description={pair.description} canonical={canonical}>
@@ -33,7 +34,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).toString(
       <ConverterApp
         client:only="react"
         defaultTargetMime={pair.target.mime}
-        acceptedSourceMimes={[pair.source.mime]}
+        acceptedSourceMimes={acceptedSourceMimes}
       />
     </div>
 

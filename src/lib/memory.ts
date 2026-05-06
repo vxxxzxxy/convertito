@@ -4,8 +4,10 @@ const MP = 1_000_000;
 export const LIMITS = {
   warnBytes: 50 * MB,
   blockBytes: 200 * MB,
-  warnPixels: 50 * MP,
-  blockPixels: 200 * MP,
+  warnPixels: 25 * MP,
+  blockPixels: 50 * MP,
+  svgWarnPixels: 8 * MP,
+  svgBlockPixels: 12 * MP,
 } as const;
 
 export type CheckLevel = 'ok' | 'warn' | 'block';
@@ -72,8 +74,9 @@ export function checkPixelCount(width: number, height: number): MemoryCheck {
 
 /**
  * Result of parsing an SVG root tag:
- * - `absolute`: the author declared `width` and `height` in resolvable units
- *   (px, cm, mm, in, pt, pc). Convert intent: render at exactly that size.
+ * - `absolute`: the author declared resolvable dimensions (px, cm, mm, in,
+ *   pt, pc). If only one side is absolute, the other can be derived from
+ *   `viewBox`.
  * - `viewBox`: only `viewBox` was usable (e.g. `width="100%"`). The author
  *   delegated absolute size to a containing element that doesn't exist when
  *   we rasterize. The viewBox values define the aspect ratio, not pixels.
@@ -102,17 +105,38 @@ export function analyzeSvgDimensions(svgText: string): SvgDimensions | null {
   const w = readDim(tag, 'width');
   const h = readDim(tag, 'height');
   if (w !== null && h !== null) return { kind: 'absolute', width: w, height: h };
-  const vb = tag.match(
-    /viewBox\s*=\s*["']\s*[\d.\-]+\s+[\d.\-]+\s+([\d.]+)\s+([\d.]+)/i,
-  );
+  const vb = readViewBox(tag);
   if (vb) {
-    return {
-      kind: 'viewBox',
-      width: Math.round(Number(vb[1])),
-      height: Math.round(Number(vb[2])),
-    };
+    if (w !== null) {
+      return {
+        kind: 'absolute',
+        width: w,
+        height: Math.max(1, Math.round((w * vb.height) / vb.width)),
+      };
+    }
+    if (h !== null) {
+      return {
+        kind: 'absolute',
+        width: Math.max(1, Math.round((h * vb.width) / vb.height)),
+        height: h,
+      };
+    }
+    return { kind: 'viewBox', width: vb.width, height: vb.height };
   }
   return null;
+}
+
+function readViewBox(tag: string): { width: number; height: number } | null {
+  const match = tag.match(
+    /viewBox\s*=\s*["']\s*[\d.\-]+\s+[\d.\-]+\s+([\d.]+)\s+([\d.]+)/i,
+  );
+  if (!match) return null;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null;
+  }
+  return { width: Math.round(width), height: Math.round(height) };
 }
 
 function readDim(tag: string, attr: 'width' | 'height'): number | null {

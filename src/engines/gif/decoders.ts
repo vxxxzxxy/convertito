@@ -18,8 +18,10 @@ export const gifDecoder: Decoder = {
     const frames = decompressFrames(gif, true);
     if (frames.length === 0) throw new Error('GIF has no frames');
     const first = frames[0]!;
+    const patch = new Uint8ClampedArray(first.patch.byteLength);
+    patch.set(first.patch);
     const pixels = new ImageData(
-      new Uint8ClampedArray(first.patch.buffer, first.patch.byteOffset, first.patch.byteLength),
+      patch,
       first.dims.width,
       first.dims.height,
     );

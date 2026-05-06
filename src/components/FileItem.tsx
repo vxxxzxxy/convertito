@@ -14,12 +14,15 @@ interface FileItemProps {
 // Safari decodes HEIC, but assuming the worst case here is harmless: when
 // the conversion finishes we swap to the output URL anyway, which IS
 // renderable everywhere.
-const NON_RENDERABLE_SOURCE_MIMES: ReadonlySet<string> = new Set([
+const NON_RENDERABLE_MIMES: ReadonlySet<string> = new Set([
   'image/heic',
   'image/heif',
   'image/heic-sequence',
   'image/heif-sequence',
   'image/jxl',
+  'image/tiff',
+  'image/tif',
+  'image/x-tiff',
 ]);
 
 export function FileItem({ job }: FileItemProps) {
@@ -30,7 +33,7 @@ export function FileItem({ job }: FileItemProps) {
   // is ready. Skipped for formats the browser can't render in <img> — those
   // show a placeholder icon instead of a broken image.
   useEffect(() => {
-    if (NON_RENDERABLE_SOURCE_MIMES.has(job.sourceMime)) {
+    if (NON_RENDERABLE_MIMES.has(job.sourceMime)) {
       setSourceObjectUrl(null);
       return;
     }
@@ -39,10 +42,9 @@ export function FileItem({ job }: FileItemProps) {
     return () => URL.revokeObjectURL(url);
   }, [job.file, job.sourceMime]);
 
-  // Prefer the converted output as preview once it exists — it's always a
-  // format the browser can render. Falls back to the source object URL,
-  // and finally to the placeholder when neither is renderable.
-  const previewUrl = job.output?.url ?? sourceObjectUrl;
+  const outputPreviewUrl =
+    job.output && !NON_RENDERABLE_MIMES.has(job.output.mime) ? job.output.url : null;
+  const previewUrl = outputPreviewUrl ?? sourceObjectUrl;
 
   const isRunning = job.status === 'running';
   const isPending = job.status === 'pending';
@@ -94,6 +96,7 @@ export function FileItem({ job }: FileItemProps) {
         </div>
         <div className="mt-2">
           <OutputPicker
+            idPrefix={job.id}
             sourceMime={job.sourceMime}
             targetMime={job.targetMime}
             options={job.options}
