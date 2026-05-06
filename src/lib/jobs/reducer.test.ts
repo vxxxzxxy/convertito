@@ -29,7 +29,7 @@ function fakeOutput(): JobOutput {
 }
 
 describe('jobsReducer', () => {
-  it('ADD_FILES appends queued jobs with the default target', () => {
+  it('ADD_FILES appends pending jobs with the default target', () => {
     const next = jobsReducer(initialJobsState, {
       type: 'ADD_FILES',
       payload: {
@@ -38,7 +38,7 @@ describe('jobsReducer', () => {
       },
     });
     expect(next.jobs).toHaveLength(1);
-    expect(next.jobs[0]?.status).toBe('queued');
+    expect(next.jobs[0]?.status).toBe('pending');
     expect(next.jobs[0]?.targetMime).toBe('image/webp');
     expect(next.jobs[0]?.options).toEqual({});
   });

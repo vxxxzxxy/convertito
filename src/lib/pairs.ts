@@ -22,6 +22,8 @@ const WEBP: ConversionFormat = { mime: 'image/webp', label: 'WebP', ext: 'webp' 
 const AVIF: ConversionFormat = { mime: 'image/avif', label: 'AVIF', ext: 'avif' };
 const HEIC: ConversionFormat = { mime: 'image/heic', label: 'HEIC', ext: 'heic' };
 const GIF: ConversionFormat = { mime: 'image/gif', label: 'GIF', ext: 'gif' };
+const TIFF: ConversionFormat = { mime: 'image/tiff', label: 'TIFF', ext: 'tiff' };
+const SVG: ConversionFormat = { mime: 'image/svg+xml', label: 'SVG', ext: 'svg' };
 
 export const pairs: ConversionPair[] = [
   {
@@ -172,6 +174,126 @@ export const pairs: ConversionPair[] = [
       'GIF está limitado a 256 colores; PNG no tiene esa limitación.',
       'Útil para extraer una imagen de un meme o miniatura sin instalar software.',
       'Procesado en tu navegador: ningún GIF se sube a un servidor.',
+    ],
+  },
+  {
+    slug: 'tiff-to-jpg',
+    category: 'image',
+    source: TIFF,
+    target: JPG,
+    title: 'Convertir TIFF a JPG',
+    description:
+      'Pasa tus TIFF (escaneos, fotografía, archivo) a JPG en el navegador. Mucho más ligeros y compatibles con cualquier dispositivo.',
+    why: [
+      'Un TIFF puede pesar 10-20 veces más que el JPG equivalente — perfecto para compartir o subir a la web.',
+      'JPG abre en cualquier visor o editor; muchas apps todavía no soportan TIFF nativamente.',
+      'Si tu TIFF está en CMYK (típico en imprenta), lo convertimos a sRGB para que se vea igual en pantalla.',
+      'Procesado 100 % en tu dispositivo. Tus archivos no se suben a un servidor.',
+    ],
+  },
+  {
+    slug: 'tiff-to-png',
+    category: 'image',
+    source: TIFF,
+    target: PNG,
+    title: 'Convertir TIFF a PNG',
+    description:
+      'Convierte TIFF a PNG sin pérdida. Útil cuando necesitas conservar transparencia o calidad máxima del original.',
+    why: [
+      'PNG es sin pérdida, igual que TIFF: la imagen se conserva pixel a pixel.',
+      'Soporta transparencia, algo que TIFF también permite y queremos preservar.',
+      'PNG se abre en cualquier navegador, editor o app móvil. TIFF aún no.',
+      'Conversión local con WebAssembly: privada y sin coste por archivo.',
+    ],
+  },
+  {
+    slug: 'tiff-to-webp',
+    category: 'image',
+    source: TIFF,
+    target: WEBP,
+    title: 'Convertir TIFF a WebP',
+    description:
+      'Reduce drásticamente el peso de tus TIFF pasándolos a WebP. Perfecto para web sin perder calidad visible.',
+    why: [
+      'WebP comprime mucho más que JPG y mantiene transparencia: un TIFF de 30 MB puede caber en 1-2 MB.',
+      'Soporte universal en navegadores modernos y mucho más rápido de cargar que TIFF.',
+      'Modo sin pérdida disponible si necesitas máxima fidelidad.',
+      'Procesado en tu navegador: nada se sube a un servidor.',
+    ],
+  },
+  {
+    slug: 'png-to-tiff',
+    category: 'image',
+    source: PNG,
+    target: TIFF,
+    title: 'Convertir PNG a TIFF',
+    description:
+      'Pasa tus PNG a TIFF para flujos de imprenta, archivado profesional o entrega a clientes que exigen TIFF.',
+    why: [
+      'TIFF con compresión LZW conserva la imagen sin pérdida y es el formato estándar en imprenta y archivo fotográfico.',
+      'Mantiene transparencia y resolución completa del PNG original.',
+      'Compatible con software profesional (Photoshop, InDesign, prensas RIP).',
+      'Convertido en tu propio dispositivo: privado y sin envío a servidor.',
+    ],
+  },
+  {
+    slug: 'jpg-to-tiff',
+    category: 'image',
+    source: JPG,
+    target: TIFF,
+    title: 'Convertir JPG a TIFF',
+    description:
+      'Convierte JPG a TIFF para archivado o entregas profesionales. Ideal cuando un cliente o flujo de trabajo exige formato sin pérdida.',
+    why: [
+      'TIFF (LZW) es el estándar para archivado fotográfico y entrega a imprenta.',
+      'Aunque el JPG ya tenga pérdida previa, congelar la imagen en TIFF evita degradación al reabrir y reguardar.',
+      'Compatible con cualquier software profesional (Photoshop, Lightroom, RIPs de impresión).',
+      'Conversión 100 % local con WebAssembly.',
+    ],
+  },
+  {
+    slug: 'svg-to-png',
+    category: 'image',
+    source: SVG,
+    target: PNG,
+    title: 'Convertir SVG a PNG',
+    description:
+      'Rasteriza un SVG a PNG en tu navegador. Útil para usar logos vectoriales en apps o redes que no soportan SVG.',
+    why: [
+      'PNG abre en cualquier dispositivo o servicio; SVG todavía es rechazado por muchas apps móviles y herramientas de oficina.',
+      'PNG conserva la transparencia del SVG original.',
+      'Si tu SVG usa fuentes web externas no embebidas, pueden caer a una sans-serif por defecto al rasterizar.',
+      'Procesado en tu navegador con WebAssembly: privado y sin coste.',
+    ],
+  },
+  {
+    slug: 'svg-to-jpg',
+    category: 'image',
+    source: SVG,
+    target: JPG,
+    title: 'Convertir SVG a JPG',
+    description:
+      'Convierte SVG a JPG cuando no necesitas transparencia y quieres un archivo más ligero y compatible.',
+    why: [
+      'JPG es el formato más universal: cualquier dispositivo o app lo abre sin problemas.',
+      'Más ligero que un PNG cuando el SVG no tiene transparencia importante.',
+      'Las zonas transparentes del SVG se rellenan con blanco (JPG no soporta alpha).',
+      'Conversión 100 % local: tu SVG no sale del dispositivo.',
+    ],
+  },
+  {
+    slug: 'svg-to-webp',
+    category: 'image',
+    source: SVG,
+    target: WEBP,
+    title: 'Convertir SVG a WebP',
+    description:
+      'Rasteriza tu SVG a WebP para web moderna. Archivos ligeros, compatibilidad amplia y soporte de transparencia.',
+    why: [
+      'WebP combina lo mejor de PNG y JPG: pesa poco y conserva transparencia.',
+      'Soporte universal en navegadores modernos para integrar el resultado en una web.',
+      'Si tu SVG depende de fuentes web no embebidas, usa una sans-serif por defecto al rasterizar.',
+      'Procesado en tu navegador con WebAssembly. Sin servidor de por medio.',
     ],
   },
 ];

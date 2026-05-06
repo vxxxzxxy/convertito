@@ -9,7 +9,9 @@ export function DropZone() {
     return [...acceptedSourceMimes, ...exts].join(',');
   }, [acceptedSourceMimes]);
   const formatList = useMemo(
-    () => acceptedSourceMimes.map(labelForMime).join(' · '),
+    // Dedupe so MIME variants that map to the same label (e.g. image/tiff +
+    // image/tif → "TIFF") only show once.
+    () => Array.from(new Set(acceptedSourceMimes.map(labelForMime))).join(' · '),
     [acceptedSourceMimes],
   );
   const inputRef = useRef<HTMLInputElement>(null);
