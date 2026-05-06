@@ -8,9 +8,10 @@ Las imágenes nunca salen del dispositivo: el decodificador y el codificador cor
 
 Imágenes (entrada → salida cualquier combinación viable):
 
-- JPG / PNG / WebP / AVIF — vía [`@jsquash`](https://github.com/jamsinclair/jSquash)
-- HEIC (entrada) — vía [`libheif-js`](https://github.com/catdad-experiments/libheif-js)
+- JPG / PNG / WebP / AVIF / JPEG XL — vía [`@jsquash`](https://github.com/jamsinclair/jSquash)
+- HEIC (solo entrada) — vía [`libheif-js`](https://github.com/catdad-experiments/libheif-js)
 - GIF — decoder con `gifuct-js`, encoder con `gifenc` (extrae el primer fotograma)
+- TIFF (entrada y salida) y SVG (solo entrada, rasteriza a 96 dpi) — vía [`wasm-vips`](https://github.com/kleisauke/wasm-vips)
 
 El registro de pares concretos vive en `src/lib/pairs.ts`. Cada par tiene su propia ruta SEO en `/convert/<slug>`.
 
@@ -37,16 +38,16 @@ DropZone (UI) ──► JobQueue (estado React)
               Blob descargable
 ```
 
-- **`src/engines/`** — cada engine expone `decoders` y `encoders`. El `registry.ts` los combina por prioridad y permite que un decoder de un engine alimente al encoder de otro (el pivote es RGBA).
+- **`src/engines/`** — cada engine (`jsquash`, `heic`, `gif`, `vips`) expone `decoders` y `encoders`. El `registry.ts` los combina por prioridad (`jsquash`=100, `heic`/`gif`=50, `vips`=25 como long tail) y permite que un decoder de un engine alimente al encoder de otro (el pivote es RGBA).
 - **`src/workers/convert.worker.ts`** — el trabajo pesado corre fuera del hilo principal vía Comlink.
 - **`src/lib/jobs/`** — máquina de estados de la cola de trabajos (pending → running → done/error).
 - **`src/lib/pairs.ts`** — pares destacados con copy en español para SEO.
 
 ### Cross-origin isolation
 
-Para habilitar `SharedArrayBuffer` (necesario para WASM multi-hilo, p. ej. `ffmpeg-mt` en el futuro) la app se sirve con cabeceras COOP/COEP:
+Para habilitar `SharedArrayBuffer` (que `wasm-vips` ya necesita y `ffmpeg-mt` necesitará en el futuro) la app se sirve con cabeceras COOP/COEP:
 
-- Dev/preview: configuradas en `astro.config.mjs`.
+- Dev/preview: middleware Vite custom `crossOriginIsolation` en `astro.config.mjs` que aplica los headers a **todas** las responses. (`vite.server.headers` por sí solo se salta algunos chunks con query string `?v=...`, lo que rompe los workers anidados de wasm-vips.)
 - Producción: `public/_headers` (formato Cloudflare Pages / Netlify).
 
 Se usa `Cross-Origin-Embedder-Policy: credentialless` en lugar de `require-corp` para no bloquear subrecursos de terceros.
@@ -80,7 +81,7 @@ Se usa `Cross-Origin-Embedder-Policy: credentialless` en lugar de `require-corp`
 ```
 src/
 ├── components/    # UI (React + Astro). ConverterApp es el entrypoint cliente.
-├── engines/       # Decoders / encoders organizados por familia (jsquash, heic, gif).
+├── engines/       # Decoders / encoders organizados por familia (jsquash, heic, gif, vips).
 ├── layouts/
 ├── lib/           # Utilidades: jobs, files, memoria, pares de conversión.
 ├── pages/

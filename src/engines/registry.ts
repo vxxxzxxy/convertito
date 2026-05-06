@@ -2,8 +2,9 @@ import type { Decoder, Encoder, Engine } from './types';
 import { jsquashEngine } from './jsquash';
 import { heicEngine } from './heic';
 import { gifEngine } from './gif';
+import { vipsEngine } from './vips';
 
-export const engines: readonly Engine[] = [jsquashEngine, heicEngine, gifEngine];
+export const engines: readonly Engine[] = [jsquashEngine, heicEngine, gifEngine, vipsEngine];
 
 export interface ConversionRoute {
   engine: Engine;

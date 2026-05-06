@@ -43,13 +43,21 @@ const FALLBACK_TARGET = 'image/webp';
 
 const MIME_LABELS: Readonly<Record<string, string>> = {
   'image/jpeg': 'JPG',
+  'image/jpg': 'JPG',
   'image/png': 'PNG',
   'image/webp': 'WebP',
   'image/avif': 'AVIF',
   'image/jxl': 'JPEG XL',
   'image/heic': 'HEIC',
   'image/heif': 'HEIF',
+  'image/heic-sequence': 'HEIC',
+  'image/heif-sequence': 'HEIF',
   'image/gif': 'GIF',
+  'image/tiff': 'TIFF',
+  'image/tif': 'TIFF',
+  'image/x-tiff': 'TIFF',
+  'image/svg+xml': 'SVG',
+  'image/svg': 'SVG',
 };
 
 export function labelForMime(mime: string): string {

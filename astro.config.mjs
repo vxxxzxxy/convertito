@@ -12,12 +12,38 @@ const isolationHeaders = {
   'Cross-Origin-Embedder-Policy': 'credentialless',
 };
 
+/**
+ * Vite middleware that re-applies isolation headers on every dev-server
+ * response. `vite.server.headers` is supposed to do this, but it skips a few
+ * paths (notably worker chunks served with `?v=...` query strings). Without
+ * those headers reaching the wasm-vips child workers, `self.crossOriginIsolated`
+ * is `false` inside them and SharedArrayBuffer transfers fail with
+ * `DataCloneError`. This plugin covers that gap.
+ */
+const crossOriginIsolation = {
+  name: 'convertito:cross-origin-isolation',
+  configureServer(server) {
+    server.middlewares.use((_req, res, next) => {
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+      next();
+    });
+  },
+  configurePreviewServer(server) {
+    server.middlewares.use((_req, res, next) => {
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+      next();
+    });
+  },
+};
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [react()],
 
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), crossOriginIsolation],
 
     // jsquash codecs ship Emscripten glue that locates .wasm via
     // `new URL(..., import.meta.url)`. Keeping them out of dep optimization
@@ -34,6 +60,11 @@ export default defineConfig({
         '@jsquash/jxl',
         '@jsquash/png',
         '@jsquash/webp',
+        // wasm-vips uses the same Emscripten `new URL(..., import.meta.url)`
+        // pattern as jsquash to locate vips.wasm and its dynamic libraries
+        // (vips-jxl/heif/resvg.wasm). Excluding from dep optimization keeps
+        // the asset references intact when Vite bundles the worker chunk.
+        'wasm-vips',
       ],
       include: ['gifuct-js', 'gifenc'],
     },
