@@ -11,7 +11,7 @@ import {
 import type { EncoderOptions } from '../../engines/types';
 import { allInputMimes } from '../../engines/registry';
 import { detectMime } from '../files';
-import { checkFileSize } from '../memory';
+import { checkFileSize, checkPixelCount } from '../memory';
 import { spawnConvertWorker, transferConvertParams, type ConvertWorker } from '../workers';
 import { initialJobsState, jobsReducer } from './reducer';
 import type { Job, JobsState } from './types';
@@ -90,6 +90,11 @@ export function JobsProvider({
       workerRef.current?.terminate();
       workerRef.current = null;
     };
+  }, []);
+
+  const restartWorker = useCallback(() => {
+    workerRef.current?.terminate();
+    workerRef.current = spawnConvertWorker();
   }, []);
 
   // Drive serial processing: whenever the worker is idle, pick up the next
@@ -192,10 +197,10 @@ export function JobsProvider({
       if (memCheck.level === 'warn' && memCheck.reason) {
         warnings.push(`${file.name}: ${memCheck.reason}`);
       }
-      // Sniff source dimensions via the browser's native decoder. Reads
-      // headers only, ~ms even for large files. Fails gracefully on formats
-      // the browser can't decode natively (e.g. JXL on Safari/Firefox) — the
-      // resize UI will fall back to "unavailable for this file".
+      // Sniff source dimensions via the browser's native decoder before the
+      // job reaches the worker. Fails gracefully on formats the browser can't
+      // decode natively (e.g. JXL on Safari/Firefox) — the resize UI will fall
+      // back to "unavailable for this file".
       let sourceWidth: number | undefined;
       let sourceHeight: number | undefined;
       try {
@@ -205,6 +210,17 @@ export function JobsProvider({
         bitmap.close();
       } catch {
         /* unsupported native decode — leave dims undefined */
+      }
+      if (sourceWidth !== undefined && sourceHeight !== undefined) {
+        const pixelCheck = checkPixelCount(sourceWidth, sourceHeight);
+        if (pixelCheck.level === 'block') {
+          blocked++;
+          if (pixelCheck.reason) warnings.push(`${file.name}: ${pixelCheck.reason}`);
+          continue;
+        }
+        if (pixelCheck.level === 'warn' && pixelCheck.reason) {
+          warnings.push(`${file.name}: ${pixelCheck.reason}`);
+        }
       }
       items.push({ file, sourceMime: mime, sourceWidth, sourceHeight });
     }
@@ -226,8 +242,22 @@ export function JobsProvider({
     [],
   );
   const convert = useCallback((id: string) => dispatch({ type: 'CONVERT', id }), []);
-  const cancel = useCallback((id: string) => dispatch({ type: 'CANCEL', id }), []);
-  const remove = useCallback((id: string) => dispatch({ type: 'REMOVE', id }), []);
+  const cancel = useCallback(
+    (id: string) => {
+      const job = jobsRef.current.find((j) => j.id === id);
+      if (job?.status === 'running') restartWorker();
+      dispatch({ type: 'CANCEL', id });
+    },
+    [restartWorker],
+  );
+  const remove = useCallback(
+    (id: string) => {
+      const job = jobsRef.current.find((j) => j.id === id);
+      if (job?.status === 'running') restartWorker();
+      dispatch({ type: 'REMOVE', id });
+    },
+    [restartWorker],
+  );
   const clearDone = useCallback(() => dispatch({ type: 'CLEAR_DONE' }), []);
 
   const resolvedAcceptedMimes = useMemo<readonly string[]>(

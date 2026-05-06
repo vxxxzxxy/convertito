@@ -11,7 +11,7 @@ Imágenes (entrada → salida cualquier combinación viable):
 - JPG / PNG / WebP / AVIF / JPEG XL — vía [`@jsquash`](https://github.com/jamsinclair/jSquash)
 - HEIC (solo entrada) — vía [`libheif-js`](https://github.com/catdad-experiments/libheif-js)
 - GIF — decoder con `gifuct-js`, encoder con `gifenc` (extrae el primer fotograma)
-- TIFF (entrada y salida) y SVG (solo entrada, rasteriza a 96 dpi) — vía [`wasm-vips`](https://github.com/kleisauke/wasm-vips)
+- TIFF (entrada y salida) y SVG (solo entrada, rasterizado con límites seguros) — vía [`wasm-vips`](https://github.com/kleisauke/wasm-vips)
 
 El registro de pares concretos vive en `src/lib/pairs.ts`. Cada par tiene su propia ruta SEO en `/convert/<slug>`.
 

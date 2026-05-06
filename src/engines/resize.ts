@@ -29,5 +29,7 @@ export async function resizeImageData(
     // canvas path's default quality and is plenty fast for one-shot conversions.
     quality: 3,
   });
-  return new ImageData(new Uint8ClampedArray(dst.buffer, dst.byteOffset, dst.byteLength), width, height);
+  const data = new Uint8ClampedArray(dst.byteLength);
+  data.set(dst);
+  return new ImageData(data, width, height);
 }

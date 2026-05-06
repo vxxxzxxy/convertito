@@ -13,6 +13,17 @@ const isolationHeaders = {
 };
 
 /**
+ * @param {unknown} _req
+ * @param {{ setHeader(name: string, value: string): void }} res
+ * @param {() => void} next
+ */
+function applyIsolationHeaders(_req, res, next) {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  next();
+}
+
+/**
  * Vite middleware that re-applies isolation headers on every dev-server
  * response. `vite.server.headers` is supposed to do this, but it skips a few
  * paths (notably worker chunks served with `?v=...` query strings). Without
@@ -22,19 +33,13 @@ const isolationHeaders = {
  */
 const crossOriginIsolation = {
   name: 'convertito:cross-origin-isolation',
+  /** @param {any} server */
   configureServer(server) {
-    server.middlewares.use((_req, res, next) => {
-      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-      res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-      next();
-    });
+    server.middlewares.use(applyIsolationHeaders);
   },
+  /** @param {any} server */
   configurePreviewServer(server) {
-    server.middlewares.use((_req, res, next) => {
-      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-      res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-      next();
-    });
+    server.middlewares.use(applyIsolationHeaders);
   },
 };
 

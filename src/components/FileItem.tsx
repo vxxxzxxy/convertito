@@ -20,6 +20,9 @@ const NON_RENDERABLE_SOURCE_MIMES: ReadonlySet<string> = new Set([
   'image/heic-sequence',
   'image/heif-sequence',
   'image/jxl',
+  'image/tiff',
+  'image/tif',
+  'image/x-tiff',
 ]);
 
 export function FileItem({ job }: FileItemProps) {

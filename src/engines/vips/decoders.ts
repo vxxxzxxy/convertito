@@ -2,8 +2,8 @@ import type { Decoder, DecodedMedia } from '../types';
 import { LIMITS, analyzeSvgDimensions } from '../../lib/memory';
 import { getVips } from './loader';
 
-/** Fallback longest-side resolution for SVGs with no absolute size. */
-const SVG_DEFAULT_MAX_DIMENSION = 2048;
+/** Chosen longest-side resolution for SVGs with no absolute size. */
+const SVG_VIEWBOX_DEFAULT_LONG_SIDE = 2048;
 
 /**
  * Helper that turns any libvips-decodable buffer into the pipeline's
@@ -84,14 +84,15 @@ export const tiffDecoder: Decoder = {
  * Two cases for sizing the raster:
  *
  * 1. **Absolute dims declared** (`width="800"`, `width="20cm"`): we honor
- *    the author's intent. If the resulting pixel count exceeds
- *    `LIMITS.blockPixels`, we clamp via a `scale` factor — the output is
+   *    the author's intent. If only one side is declared, `viewBox` supplies
+   *    the aspect ratio. If the resulting pixel count exceeds
+   *    `LIMITS.svgBlockPixels`, we clamp via a `scale` factor — the output is
  *    smaller than the SVG asked but the conversion succeeds.
  *
  * 2. **Only viewBox** (or `width="100%"`, etc.): the author delegated
  *    absolute size to a containing element that doesn't exist at raster
- *    time. We pick a sensible web default — longest side capped at
- *    `SVG_DEFAULT_MAX_DIMENSION` px, aspect ratio from the viewBox. This
+   *    time. We pick a sensible web default — longest side
+   *    `SVG_VIEWBOX_DEFAULT_LONG_SIDE` px, aspect ratio from the viewBox. This
  *    is the only sane behavior; trying to rasterize at the viewBox values
  *    treats `viewBox="0 0 10000 8500"` as 10000×8500 px which is hundreds
  *    of MB of RGBA — almost never what the user wants for web output.
@@ -121,11 +122,11 @@ export const svgDecoder: Decoder = {
       const declared = dims.width * dims.height;
       // sqrt(max / declared) lands the output exactly at the pixel cap.
       // Cap at 1 so we never upscale beyond what the author asked.
-      scale = declared > LIMITS.blockPixels ? Math.sqrt(LIMITS.blockPixels / declared) : 1;
+      scale = declared > LIMITS.svgBlockPixels ? Math.sqrt(LIMITS.svgBlockPixels / declared) : 1;
     } else {
       // viewBox-only: scale so the longest side equals the web default.
       const longest = Math.max(dims.width, dims.height);
-      scale = SVG_DEFAULT_MAX_DIMENSION / longest;
+      scale = SVG_VIEWBOX_DEFAULT_LONG_SIDE / longest;
     }
     return vipsDecodeToRGBA(input, 'image/svg+xml', { scale });
   },

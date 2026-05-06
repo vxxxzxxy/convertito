@@ -2,6 +2,7 @@ export type ConversionCategory = 'image' | 'audio' | 'document';
 
 export interface ConversionFormat {
   mime: string;
+  inputMimes?: readonly string[];
   label: string;
   ext: string;
 }
@@ -20,7 +21,12 @@ const JPG: ConversionFormat = { mime: 'image/jpeg', label: 'JPG', ext: 'jpg' };
 const PNG: ConversionFormat = { mime: 'image/png', label: 'PNG', ext: 'png' };
 const WEBP: ConversionFormat = { mime: 'image/webp', label: 'WebP', ext: 'webp' };
 const AVIF: ConversionFormat = { mime: 'image/avif', label: 'AVIF', ext: 'avif' };
-const HEIC: ConversionFormat = { mime: 'image/heic', label: 'HEIC', ext: 'heic' };
+const HEIC: ConversionFormat = {
+  mime: 'image/heic',
+  inputMimes: ['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence'],
+  label: 'HEIC',
+  ext: 'heic',
+};
 const GIF: ConversionFormat = { mime: 'image/gif', label: 'GIF', ext: 'gif' };
 const TIFF: ConversionFormat = { mime: 'image/tiff', label: 'TIFF', ext: 'tiff' };
 const SVG: ConversionFormat = { mime: 'image/svg+xml', label: 'SVG', ext: 'svg' };
