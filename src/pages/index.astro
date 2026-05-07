@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import ConverterApp from '../components/ConverterApp';
 import CategoryCard from '../components/CategoryCard.astro';
+import RecommendedConversions from '../components/RecommendedConversions.astro';
 import PopularConversions from '../components/PopularConversions.astro';
 import Footer from '../components/Footer.astro';
 ---
@@ -13,7 +14,7 @@ import Footer from '../components/Footer.astro';
         Convierte y comprime <span class="text-primary">tus imágenes</span> en segundos
       </h1>
       <p class="mt-4 text-muted-foreground">
-        Convertito transforma tus imágenes sin subir tus archivos a ningún servidor. Gratis, rápido y sin marcas de agua. Tienes el control total sin complicaciones.
+        Convertito procesa tus imágenes localmente en este navegador. Gratis, rápido y sin marcas de agua, con tus archivos bajo tu control.
       </p>
       <ul class="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
         <li class="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-muted-foreground">
@@ -72,7 +73,7 @@ import Footer from '../components/Footer.astro';
             <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
-          <span>100% Privado</span>
+          <span>Procesamiento local</span>
         </li>
       </ul>
     </section>
@@ -109,6 +110,8 @@ import Footer from '../components/Footer.astro';
         />
       </div>
     </section>
+
+    <RecommendedConversions />
 
     <PopularConversions />
 

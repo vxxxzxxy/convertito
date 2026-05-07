@@ -43,15 +43,25 @@ const {
     <title>{title}</title>
   </head>
   <body class="min-h-dvh bg-background text-foreground antialiased">
-    <header class="border-b border-border">
+    <header class="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <a href="/" class="flex items-center gap-2 text-base font-semibold tracking-tight text-foreground">
-          <span class="flex size-7 items-center justify-center rounded-md bg-primary font-bold text-primary-foreground" aria-hidden="true">
+          <span class="flex size-7 items-center justify-center rounded-md bg-primary font-bold text-primary-foreground shadow-sm ring-1 ring-primary/20" aria-hidden="true">
             C
           </span>
           Convertito
         </a>
-        <ModeToggle client:load />
+        <div class="flex items-center gap-1 sm:gap-3">
+          <nav aria-label="Principal" class="flex items-center gap-1 text-sm text-muted-foreground">
+            <a href="/image" class="rounded-md px-2.5 py-1.5 transition-colors hover:bg-muted hover:text-foreground">
+              Herramientas
+            </a>
+            <a href="#contacto" class="rounded-md px-2.5 py-1.5 transition-colors hover:bg-muted hover:text-foreground">
+              Contacto
+            </a>
+          </nav>
+          <ModeToggle client:load />
+        </div>
       </div>
     </header>
     <slot />

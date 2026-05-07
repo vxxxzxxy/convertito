@@ -1,0 +1,81 @@
+---
+import { pairBySlug } from '../lib/pairs';
+
+const groups = [
+  {
+    title: 'Optimizar para web',
+    description: 'Formatos ligeros para publicar, compartir y cargar más rápido.',
+    slugs: ['jpg-to-webp', 'png-to-webp', 'jpg-to-avif'],
+  },
+  {
+    title: 'Compatibilidad',
+    description: 'Convierte archivos difíciles de abrir a formatos universales.',
+    slugs: ['heic-to-jpg', 'tiff-to-png', 'svg-to-png'],
+  },
+  {
+    title: 'Conservar calidad',
+    description: 'Opciones útiles para edición, entrega o archivo profesional.',
+    slugs: ['jpg-to-png', 'png-to-tiff', 'jpg-to-tiff'],
+  },
+];
+---
+
+<section aria-labelledby="recommended-conversions-heading" class="mt-12">
+  <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h2 id="recommended-conversions-heading" class="text-lg font-semibold text-foreground">
+        Recomendaciones
+      </h2>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Elige por objetivo cuando no tengas claro el formato final.
+      </p>
+    </div>
+  </div>
+  <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    {
+      groups.map((group) => (
+        <article class="rounded-lg border border-border bg-card p-4 shadow-sm">
+          <div class="mb-3 h-1 w-10 rounded-full bg-primary" aria-hidden="true" />
+          <h3 class="text-sm font-semibold text-foreground">{group.title}</h3>
+          <p class="mt-1 min-h-10 text-sm text-muted-foreground">{group.description}</p>
+          <ul class="mt-4 space-y-2">
+            {group.slugs.map((slug) => {
+              const pair = pairBySlug.get(slug);
+              if (!pair) return null;
+              return (
+                <li>
+                  <a
+                    href={`/convert/${pair.slug}`}
+                    class="group flex items-center justify-between gap-2 rounded-md border border-border/80 px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-primary/[0.04]"
+                  >
+                    <span class="font-medium text-foreground">
+                      {pair.source.label}
+                      <span class="mx-1.5 text-muted-foreground">→</span>
+                      {pair.target.label}
+                    </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="m12 5 7 7-7 7" />
+                    </svg>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </article>
+      ))
+    }
+  </div>
+</section>
